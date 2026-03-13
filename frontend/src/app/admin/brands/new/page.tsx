@@ -1,0 +1,206 @@
+'use client';
+
+import { useState } from 'react'
+import { createClient } from '@/utils/supabase/client'
+import { useRouter } from 'next/navigation'
+import AdminLayout from '@/components/layout/AdminLayout'
+import { Globe, ArrowLeft, Save, Sparkles } from 'lucide-react'
+import { useAuth } from '@/context/AuthContext'
+
+export default function NewBrandPage() {
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const router = useRouter()
+    const supabase = createClient()
+    const { user: authUser } = useAuth()
+
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        e.preventDefault()
+        setLoading(true)
+        setError(null)
+
+        const formData = new FormData(e.currentTarget)
+        const brandData = {
+            name: formData.get('name') as string,
+            subdomain: formData.get('subdomain') as string,
+            hero_title: formData.get('hero_title') as string,
+            hero_subtitle: formData.get('hero_subtitle') as string,
+            primary_color: formData.get('primary_color') as string,
+            contact_email: formData.get('contact_email') as string,
+            contact_phone: formData.get('contact_phone') as string,
+        }
+
+        // Use context user for validation
+        if (!authUser) {
+            setError('Bạn cần đăng nhập để tạo thương hiệu.')
+            setLoading(false)
+            return
+        }
+
+        // Try to get Supabase ID, otherwise use a placeholder if needed for Demo
+        const { data: { user: sbUser } } = await supabase.auth.getUser()
+        const owner_id = sbUser?.id || null
+
+        const { error: insertError } = await supabase
+            .from('brands')
+            .insert({ ...brandData, owner_id: owner_id })
+
+        if (insertError) {
+            // If table doesn't exist, give a more helpful error
+            if (insertError.message.includes('not found')) {
+                setError('Lỗi: Bảng "brands" chưa được tạo trong Supabase. Vui lòng chạy SQL Schema trước.')
+            } else {
+                setError(insertError.message)
+            }
+            setLoading(false)
+        } else {
+            router.push('/admin/brands')
+            router.refresh()
+        }
+    }
+
+    return (
+        <AdminLayout>
+            <div className="max-w-4xl mx-auto space-y-10 pb-20">
+                {/* Header Section */}
+                <div className="flex items-center justify-between">
+                    <button
+                        onClick={() => router.back()}
+                        className="flex items-center gap-2 text-gray-400 hover:text-black transition-colors group"
+                    >
+                        <div className="w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center group-hover:bg-gray-50">
+                            <ArrowLeft size={18} />
+                        </div>
+                        <span className="text-xs font-black uppercase tracking-widest">quay lại</span>
+                    </button>
+                    <div>
+                        <h1 className="text-3xl font-black lowercase tracking-tighter text-right">tạo thương hiệu mới</h1>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">bắt đầu xây dựng landing page của bạn</p>
+                    </div>
+                </div>
+
+                {error && (
+                    <div className="bg-red-50 text-red-600 p-6 rounded-[1.5rem] border border-red-100 flex items-center gap-4 animate-shake">
+                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">!</div>
+                        <p className="text-sm font-bold">{error}</p>
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    {/* Left Column: Core Info */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-2">Thông tin cơ bản</label>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <input
+                                            name="name"
+                                            required
+                                            placeholder="Tên thương hiệu (vd: August Agency)"
+                                            className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center bg-gray-50 rounded-2xl focus-within:ring-2 focus-within:ring-[#dafc69] transition-all">
+                                            <input
+                                                name="subdomain"
+                                                required
+                                                placeholder="subdomain"
+                                                className="flex-1 px-6 py-4 bg-transparent border-none outline-none font-bold text-sm placeholder:text-gray-300"
+                                            />
+                                            <span className="pr-6 text-gray-300 text-[10px] font-black uppercase tracking-widest">
+                                                .augustevents.co.uk
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-2">Nội dung Hero</label>
+                                <div className="space-y-4">
+                                    <input
+                                        name="hero_title"
+                                        placeholder="Tiêu đề chính trên trang (vd: Sáng tạo không giới hạn)"
+                                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all"
+                                    />
+                                    <textarea
+                                        name="hero_subtitle"
+                                        rows={4}
+                                        placeholder="Mô tả ngắn gọn về giá trị của bạn..."
+                                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all resize-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-2">Thông tin liên hệ</label>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <input
+                                        name="contact_email"
+                                        type="email"
+                                        placeholder="Email liên hệ"
+                                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all"
+                                    />
+                                    <input
+                                        name="contact_phone"
+                                        placeholder="Số điện thoại"
+                                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Style & Actions */}
+                    <div className="space-y-8">
+                        <div className="bg-black p-10 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+                            <div className="relative z-10 space-y-6">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500">Màu sắc chủ đạo</label>
+                                <div className="flex items-center gap-6">
+                                    <input
+                                        name="primary_color"
+                                        type="color"
+                                        defaultValue="#dafc69"
+                                        className="w-16 h-16 bg-transparent border-none rounded-full cursor-pointer p-0 overflow-hidden shadow-xl"
+                                    />
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                        Chọn màu chính<br />cho landing page
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="absolute top-[-20%] right-[-20%] w-[150px] h-[150px] bg-[#dafc69]/20 rounded-full blur-3xl"></div>
+                        </div>
+
+                        <div className="bg-white p-2 rounded-[2.5rem] border border-gray-100 shadow-sm flex flex-col gap-2">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-[#dafc69] text-black py-6 rounded-[2rem] font-black text-sm lowercase hover:scale-105 transition-all flex items-center justify-center gap-3 shadow-xl shadow-lime-400/20 disabled:opacity-50"
+                            >
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        <Sparkles size={18} />
+                                        <span>tạo thương hiệu</span>
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => router.back()}
+                                className="w-full py-6 text-gray-400 font-black text-sm lowercase hover:text-black transition-colors"
+                            >
+                                hủy bỏ
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </AdminLayout>
+    )
+}
