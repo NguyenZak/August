@@ -205,30 +205,74 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Partners Section */}
-      <section className="py-24 bg-[#dafc69] text-black border-y border-black/10 overflow-hidden font-suisse relative z-30">
-        <div className="flex overflow-hidden group select-none">
-          <div className="flex animate-partners-marquee whitespace-nowrap gap-20 py-4 items-center">
-            {partners && partners.length > 0 ? (
-              [...partners, ...partners, ...partners, ...partners].map((p, idx) => (
-                <div key={idx} className="flex items-center justify-center gap-4 opacity-70 hover:opacity-100 transition-opacity duration-500 mix-blend-multiply border-r border-black/10 pr-20 last:border-r-0">
-                  {p.logo ? (
-                    <img src={p.logo} alt={p.name} className="h-20 w-auto object-contain px-4 drop-shadow-sm mix-blend-multiply" />
-                  ) : (
-                    <span className="text-4xl font-black text-black lowercase tracking-tighter mix-blend-multiply">{p.name}</span>
-                  )}
-                </div>
-              ))
-            ) : (
-              [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                <span key={i} className="text-4xl font-black text-black/20 lowercase tracking-tighter mix-blend-multiply px-10">đang cập nhật đối tác</span>
-              ))
-            )}
+      {/* Stats & Partners Section */}
+      <section className="py-20 md:py-32 bg-white text-black font-suisse relative z-30 overflow-hidden border-y border-black/10">
+        <div className="max-w-[90%] mx-auto relative flex flex-col md:flex-row min-h-[500px] md:min-h-[700px]">
+
+          {/* Floating Background Images */}
+          <div className="absolute inset-0 pointer-events-none z-0 hidden lg:block opacity-90">
+            <div className="absolute top-0 left-[25%] w-48 aspect-square overflow-hidden transform -translate-y-10 shadow-xl">
+              <img src="/assets/august/about_center_1.jpg" className="w-full h-full object-cover grayscale" alt="" />
+            </div>
+            <div className="absolute top-[10%] left-[50%] -translate-x-1/2 w-[400px] aspect-[4/5] overflow-hidden shadow-2xl">
+              <img src="/assets/august/our_services_events_.jpg" className="w-full h-full object-cover" alt="" />
+            </div>
+            <div className="absolute bottom-[20%] right-[0%] w-60 aspect-[3/4] overflow-hidden shadow-2xl">
+              <img src="/assets/august/our_services_marketi.jpg" className="w-full h-full object-cover grayscale" alt="" />
+            </div>
           </div>
+
+          {/* Left Column */}
+          <div className="w-full md:w-[45%] md:border-r border-black/60 relative z-10 flex flex-col justify-between pt-10 px-4 md:px-8">
+            <div className="mix-blend-multiply">
+              <h2 className="text-[6rem] md:text-[10rem] lg:text-[14rem] font-black leading-[0.8] tracking-tighter text-black">
+                {settings.stats_years || "10+"}
+              </h2>
+              <p className="text-3xl md:text-5xl font-black mt-2 md:mt-4 tracking-tight text-black">years</p>
+            </div>
+
+            <p className="text-gray-800 max-w-xs text-lg md:text-xl font-medium mt-20 md:mt-auto pb-10 leading-relaxed mix-blend-multiply">
+              {settings.stats_desc || "Our team has been organizing bespoke events and crafting memorable experiences"}
+            </p>
+          </div>
+
+          {/* Right Column */}
+          <div className="w-full md:w-[55%] relative z-10 flex flex-col justify-between pt-10 px-4 md:px-12">
+            <div className="mix-blend-multiply">
+              <h2 className="text-[6rem] md:text-[10rem] lg:text-[14rem] font-black leading-[0.8] tracking-tighter text-black">
+                {settings.stats_clients || "56+"}
+              </h2>
+              <p className="text-3xl md:text-5xl font-black mt-2 md:mt-4 tracking-tight text-black">clients</p>
+            </div>
+
+            {/* Partner Circular Logos Row */}
+            <div className="mt-20 md:mt-auto pb-10 overflow-hidden w-full relative z-20">
+              <div className="flex gap-4 md:gap-6 animate-partners-grid">
+                {partners && partners.length > 0 ? (
+                  [...partners, ...partners, ...partners, ...partners].map((p, idx) => (
+                    <div key={idx} className="w-24 md:w-32 aspect-square rounded-full bg-[#f8f8f8] flex items-center justify-center flex-shrink-0 shadow-lg border border-black/5 hover:scale-105 transition-transform bg-opacity-95 backdrop-blur-sm">
+                      {p.logo ? (
+                        <img src={p.logo} alt={p.name} className="w-[65%] h-[65%] object-contain mix-blend-multiply" />
+                      ) : (
+                        <span className="text-[10px] md:text-xs font-black text-black/60 text-center px-4 mix-blend-multiply lowercase leading-tight">{p.name}</span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  [1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="w-24 md:w-32 aspect-square rounded-full bg-[#f8f8f8] flex items-center justify-center flex-shrink-0 shadow-lg border border-black/5">
+                      <span className="text-xs font-black lowercase text-black/20 text-center">loading</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
         </div>
         <style jsx>{`
-          @keyframes partners-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-          .animate-partners-marquee { animation: partners-marquee 40s linear infinite; }
+          @keyframes partners-grid { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+          .animate-partners-grid { animation: partners-grid 30s linear infinite; }
         `}</style>
       </section>
 
