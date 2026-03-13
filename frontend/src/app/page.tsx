@@ -206,16 +206,16 @@ export default function Home() {
       </section>
 
       {/* Partners Section */}
-      {partners.length > 0 && (
-        <section className="py-20 bg-[#111111] border-y border-white/5 overflow-hidden font-suisse">
+      {partners && partners.length > 0 && (
+        <section className="py-24 bg-[#dafc69] text-black border-y border-black/10 overflow-hidden font-suisse relative z-30">
           <div className="flex overflow-hidden group select-none">
             <div className="flex animate-partners-marquee whitespace-nowrap gap-20 py-4 items-center">
               {[...partners, ...partners, ...partners, ...partners].map((p, idx) => (
-                <div key={idx} className="flex items-center gap-4 opacity-40 hover:opacity-100 transition-opacity duration-500 grayscale hover:grayscale-0">
+                <div key={idx} className="flex items-center justify-center gap-4 opacity-70 hover:opacity-100 transition-opacity duration-500 mix-blend-multiply">
                   {p.logo ? (
-                    <img src={p.logo} alt={p.name} className="h-20 md:h-28 lg:h-32 w-auto object-contain px-4" />
+                    <img src={p.logo} alt={p.name} className="h-16 md:h-24 lg:h-32 w-auto object-contain px-4 drop-shadow-sm" />
                   ) : (
-                    <span className="text-2xl font-black text-white lowercase tracking-tighter">{p.name}</span>
+                    <span className="text-3xl md:text-5xl font-black text-black lowercase tracking-tighter mix-blend-multiply">{p.name}</span>
                   )}
                 </div>
               ))}
@@ -223,7 +223,7 @@ export default function Home() {
           </div>
           <style jsx>{`
             @keyframes partners-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-            .animate-partners-marquee { animation: partners-marquee 60s linear infinite; }
+            .animate-partners-marquee { animation: partners-marquee 40s linear infinite; }
           `}</style>
         </section>
       )}
