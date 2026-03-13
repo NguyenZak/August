@@ -206,27 +206,31 @@ export default function Home() {
       </section>
 
       {/* Partners Section */}
-      {partners && partners.length > 0 && (
-        <section className="py-24 bg-[#dafc69] text-black border-y border-black/10 overflow-hidden font-suisse relative z-30">
-          <div className="flex overflow-hidden group select-none">
-            <div className="flex animate-partners-marquee whitespace-nowrap gap-20 py-4 items-center">
-              {[...partners, ...partners, ...partners, ...partners].map((p, idx) => (
-                <div key={idx} className="flex items-center justify-center gap-4 opacity-70 hover:opacity-100 transition-opacity duration-500 mix-blend-multiply">
+      <section className="py-24 bg-[#dafc69] text-black border-y border-black/10 overflow-hidden font-suisse relative z-30">
+        <div className="flex overflow-hidden group select-none">
+          <div className="flex animate-partners-marquee whitespace-nowrap gap-20 py-4 items-center">
+            {partners && partners.length > 0 ? (
+              [...partners, ...partners, ...partners, ...partners].map((p, idx) => (
+                <div key={idx} className="flex items-center justify-center gap-4 opacity-70 hover:opacity-100 transition-opacity duration-500 mix-blend-multiply border-r border-black/10 pr-20 last:border-r-0">
                   {p.logo ? (
-                    <img src={p.logo} alt={p.name} className="h-16 md:h-24 lg:h-32 w-auto object-contain px-4 drop-shadow-sm" />
+                    <img src={p.logo} alt={p.name} className="h-20 w-auto object-contain px-4 drop-shadow-sm mix-blend-multiply" />
                   ) : (
-                    <span className="text-3xl md:text-5xl font-black text-black lowercase tracking-tighter mix-blend-multiply">{p.name}</span>
+                    <span className="text-4xl font-black text-black lowercase tracking-tighter mix-blend-multiply">{p.name}</span>
                   )}
                 </div>
-              ))}
-            </div>
+              ))
+            ) : (
+              [1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <span key={i} className="text-4xl font-black text-black/20 lowercase tracking-tighter mix-blend-multiply px-10">đang cập nhật đối tác</span>
+              ))
+            )}
           </div>
-          <style jsx>{`
-            @keyframes partners-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-            .animate-partners-marquee { animation: partners-marquee 40s linear infinite; }
-          `}</style>
-        </section>
-      )}
+        </div>
+        <style jsx>{`
+          @keyframes partners-marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+          .animate-partners-marquee { animation: partners-marquee 40s linear infinite; }
+        `}</style>
+      </section>
 
       {/* Cases Section */}
       <section id="cases" className="py-32 md:py-64 bg-black text-white overflow-hidden font-suisse">
