@@ -213,7 +213,7 @@ export default function Home() {
               {[...partners, ...partners, ...partners, ...partners].map((p, idx) => (
                 <div key={idx} className="flex items-center gap-4 opacity-40 hover:opacity-100 transition-opacity duration-500 grayscale hover:grayscale-0">
                   {p.logo ? (
-                    <img src={p.logo} alt={p.name} className="h-10 md:h-14 w-auto object-contain" />
+                    <img src={p.logo} alt={p.name} className="h-20 md:h-28 lg:h-32 w-auto object-contain px-4" />
                   ) : (
                     <span className="text-2xl font-black text-white lowercase tracking-tighter">{p.name}</span>
                   )}
