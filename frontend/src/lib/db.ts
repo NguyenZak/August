@@ -1,13 +1,19 @@
 import { Pool, PoolConfig } from 'pg';
 
+const connectionString = process.env.DATABASE_URL || '';
+// For serverless, ensure we use a connection string that's durable.
+const safeConnectionString = connectionString.includes('supabase.co') && !connectionString.includes('pgbouncer=true')
+    ? `${connectionString}?pgbouncer=true&connection_limit=1`
+    : connectionString;
+
 const pgConfig: PoolConfig = {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: safeConnectionString,
     ssl: {
         rejectUnauthorized: false
     },
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    max: 5, // Keep low for serverless
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
 };
 
 let pool: Pool | null = null;
