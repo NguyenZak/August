@@ -28,8 +28,12 @@ export async function POST(req: NextRequest) {
 
         const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '24h' });
         return NextResponse.json({ token, user: { id: user.id, email: user.email } });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Login error:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({
+            message: 'Internal server error',
+            debug_error: String(error),
+            debug_stack: error?.stack
+        }, { status: 500 });
     }
 }
