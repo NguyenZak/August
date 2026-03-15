@@ -6,6 +6,7 @@ import { Inter } from "next/font/google";
 import { ContactProvider } from "@/context/ContactContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ContactPopup from "@/components/common/ContactPopup";
+import ChatWidget from "@/components/common/ChatWidget";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,6 +27,7 @@ export default function RootLayout({
           <ContactProvider>
             {children}
             <ContactPopup />
+            <ChatWidget />
           </ContactProvider>
         </AuthProvider>
       </body>
