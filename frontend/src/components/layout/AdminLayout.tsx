@@ -7,6 +7,7 @@ import {
     Wrench,
     Users,
     Mail,
+    MessageSquare,
     Settings,
     LogOut,
     ExternalLink,
@@ -35,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { name: 'Quản lý Đánh giá', href: '/admin/reviews', icon: Star },
         { name: 'Quản lý Đối tác', href: '/admin/clients', icon: Users },
         { name: 'Hộp thư liên hệ', href: '/admin/inquiries', icon: Mail },
+        { name: 'Lịch sử Chat', href: '/admin/chat-logs', icon: MessageSquare },
         { name: 'Thư viện Media', href: '/admin/media', icon: Image },
         { name: 'Quản lý AI Apps', href: '/admin/playback', icon: Globe },
     ];
