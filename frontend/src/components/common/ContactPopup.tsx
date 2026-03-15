@@ -4,10 +4,12 @@ import React, { useState } from 'react';
 import { X, Send } from 'lucide-react';
 import { useContact } from '@/context/ContactContext';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
+import { cmsService } from '@/services/api';
 
 export default function ContactPopup() {
     const { isOpen, closeContact } = useContact();
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -19,14 +21,26 @@ export default function ContactPopup() {
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        setIsSubmitted(true);
+        setIsLoading(true);
+        try {
+            await cmsService.createInquiry({
+                ...formData,
+                project_type: 'Branding'
+            });
+            setIsSubmitted(true);
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            alert('Có lỗi xảy ra khi gửi yêu cầu. Vui lòng thử lại sau.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleClose = () => {
         setIsSubmitted(false);
+        setIsLoading(false);
         setFormData({
             name: '',
             email: '',
@@ -242,9 +256,10 @@ export default function ContactPopup() {
                                                     whileHover={{ scale: 1.02, backgroundColor: '#dafc69', color: '#000' }}
                                                     whileTap={{ scale: 0.98 }}
                                                     type="submit"
-                                                    className="w-full bg-black text-white py-4 rounded-full font-black lowercase text-lg transition-all flex items-center justify-center gap-3 mt-4"
+                                                    disabled={isLoading}
+                                                    className="w-full bg-black text-white py-4 rounded-full font-black lowercase text-lg transition-all flex items-center justify-center gap-3 mt-4 disabled:opacity-50"
                                                 >
-                                                    Gửi yêu cầu <Send className="w-5 h-5" />
+                                                    {isLoading ? 'đang gửi...' : 'Gửi yêu cầu'} <Send className="w-5 h-5" />
                                                 </motion.button>
                                             </form>
                                         </motion.div>

@@ -23,6 +23,20 @@ export default function AdminInquiriesPage() {
     const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
 
+    const statusColorMap: Record<string, string> = {
+        new: "bg-blue-50 text-blue-600 border-blue-100",
+        consulting: "bg-amber-50 text-amber-600 border-amber-100",
+        contacted: "bg-emerald-50 text-emerald-600 border-emerald-100",
+        fake: "bg-rose-50 text-rose-600 border-rose-100",
+    };
+
+    const statusLabelMap: Record<string, string> = {
+        new: "Chưa liên lạc",
+        consulting: "Đang tư vấn",
+        contacted: "Đã liên lạc",
+        fake: "Khách ảo",
+    };
+
     const fetchInquiries = async () => {
         setIsLoading(true);
         try {
@@ -51,10 +65,24 @@ export default function AdminInquiriesPage() {
         }
     };
 
+    const handleStatusUpdate = async (id: string, newStatus: string) => {
+        try {
+            await cmsService.updateInquiry(id, { status: newStatus });
+            // Update local state for immediate feedback
+            setInquiries(prev => prev.map(item => item.id === id ? { ...item, status: newStatus } : item));
+            if (selectedInquiry?.id === id) {
+                setSelectedInquiry(prev => prev ? { ...prev, status: newStatus } : null);
+            }
+        } catch (err) {
+            console.error("Error updating status:", err);
+            alert("Không thể cập nhật trạng thái.");
+        }
+    };
+
     const filteredInquiries = inquiries.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.message.toLowerCase().includes(searchTerm.toLowerCase())
+        (item.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.message?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     return (
@@ -84,7 +112,8 @@ export default function AdminInquiriesPage() {
                             <thead>
                                 <tr className="bg-gray-50/50">
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Khách hàng</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Loại dự án</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Mô hình</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Trạng thái</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Ngày gửi</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Thao tác</th>
                                 </tr>
@@ -94,18 +123,23 @@ export default function AdminInquiriesPage() {
                                     <motion.tr layout key={item.id} className="hover:bg-gray-50/50 transition-colors group">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400">
+                                                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 border border-gray-100">
                                                     <User className="w-5 h-5" />
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-black text-gray-900 lowercase tracking-tight">{item.name}</p>
-                                                    <p className="text-xs text-gray-400 font-bold lowercase">{item.email}</p>
+                                                    <p className="text-xs text-gray-400 font-bold lowercase">{item.email || item.phone}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
-                                            <span className="text-xs font-black uppercase tracking-tighter text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg">
-                                                {item.project_type || 'Tư vấn chung'}
+                                            <span className="text-xs font-black uppercase tracking-tighter text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                                                {item.business_model || 'Tư vấn chung'}
+                                            </span>
+                                        </td>
+                                        <td className="px-8 py-6">
+                                            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border ${statusColorMap[item.status || 'new']}`}>
+                                                {statusLabelMap[item.status || 'new']}
                                             </span>
                                         </td>
                                         <td className="px-8 py-6">
@@ -128,7 +162,7 @@ export default function AdminInquiriesPage() {
                                 ))}
                                 {filteredInquiries.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="px-8 py-20 text-center">
+                                        <td colSpan={5} className="px-8 py-20 text-center">
                                             <div className="flex flex-col items-center gap-4">
                                                 <Mail className="w-12 h-12 text-gray-200" />
                                                 <p className="text-gray-400 font-medium">Không tìm thấy tin nhắn nào.</p>
@@ -182,10 +216,44 @@ export default function AdminInquiriesPage() {
                                         </div>
                                     </div>
 
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Website</p>
+                                            <p className="text-sm font-bold text-gray-600 truncate">{selectedInquiry.website || 'N/A'}</p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Fanpage</p>
+                                            <p className="text-sm font-bold text-gray-600 truncate">{selectedInquiry.fanpage || 'N/A'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mô hình kinh doanh</p>
+                                        <p className="text-sm font-bold text-gray-600">{selectedInquiry.business_model || 'N/A'}</p>
+                                    </div>
+
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nội dung tin nhắn</p>
                                         <div className="bg-gray-50 p-6 rounded-[2rem] text-sm text-gray-700 leading-relaxed italic border border-gray-100">
-                                            "{selectedInquiry.message}"
+                                            "{selectedInquiry.message || 'Không có nội dung tin nhắn.'}"
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 pt-6 border-t border-gray-100">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Cập nhật trạng thái</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {Object.keys(statusLabelMap).map((status) => (
+                                                <button
+                                                    key={status}
+                                                    onClick={() => handleStatusUpdate(selectedInquiry.id, status)}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2 ${selectedInquiry.status === status
+                                                        ? 'border-black bg-black text-white shadow-lg'
+                                                        : 'border-transparent bg-gray-50 text-gray-400 hover:bg-gray-100'
+                                                        }`}
+                                                >
+                                                    {statusLabelMap[status]}
+                                                </button>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -195,7 +263,7 @@ export default function AdminInquiriesPage() {
                                         <Mail className="w-5 h-5 text-[#dafc69]" /> Phản hồi qua Email
                                     </a>
                                     <button onClick={() => setSelectedInquiry(null)} className="flex-1 bg-gray-100 text-gray-600 py-4 rounded-full font-black hover:bg-gray-200 transition-colors">
-                                        Đã xem
+                                        Đóng chi tiết
                                     </button>
                                 </div>
                             </motion.div>

@@ -8,11 +8,10 @@ const api = axios.create({
     timeout: 300000, // 5 minutes for large file uploads
 });
 
-// Interceptor để tự động đính kèm Token
+// Request Interceptor: Attach Token
 api.interceptors.request.use((config) => {
     if (typeof window !== 'undefined') {
         const token = localStorage.getItem('admin_token');
-        console.log(`[API Client] Request: ${config.method?.toUpperCase()} ${config.url} | Token exists: ${!!token}`);
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -21,5 +20,24 @@ api.interceptors.request.use((config) => {
 }, (error) => {
     return Promise.reject(error);
 });
+
+// Response Interceptor: Handle 401 Session Expiry
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            console.error('[API Client] Unauthorized access - clearing session');
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('august_auth_user');
+                // Use window.location.href for a hard redirect since we're outside of React context
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/login';
+                }
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default api;

@@ -22,7 +22,7 @@ export function authenticateJWT(req: NextRequest): UserPayload | null {
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
         return decoded;
-    } catch (err) {
+    } catch (err: any) {
         return null;
     }
 }

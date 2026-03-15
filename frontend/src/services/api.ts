@@ -44,8 +44,13 @@ export interface Inquiry {
     name: string;
     email: string;
     phone: string;
-    message: string;
-    project_type: string;
+    message?: string;
+    project_type?: string;
+    company?: string;
+    status: string;
+    business_model?: string;
+    website?: string;
+    fanpage?: string;
     created_at: string;
 }
 
@@ -101,6 +106,7 @@ export const cmsService = {
     // Inquiries
     getInquiries: () => api.get<Inquiry[]>('/inquiries'),
     createInquiry: (data: Partial<Inquiry>) => api.post('/inquiries', data),
+    updateInquiry: (id: string, data: Partial<Inquiry>) => api.put(`/inquiries/${id}`, data),
     deleteInquiry: (id: string) => api.delete(`/inquiries/${id}`),
 
     // Media
