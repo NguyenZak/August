@@ -125,7 +125,7 @@ export default function ChatWidget() {
                         <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-gray-50/50">
                             {messages.map((msg) => (
                                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[80%] p-4 rounded-2xl text-sm font-bold leading-relaxed ${msg.sender === 'user'
+                                    <div className={`max-w-[80%] p-4 rounded-2xl text-sm font-bold leading-relaxed whitespace-pre-wrap ${msg.sender === 'user'
                                         ? 'bg-black text-white rounded-tr-none shadow-lg'
                                         : 'bg-white text-gray-800 rounded-tl-none border border-gray-100 shadow-sm'
                                         }`}>
