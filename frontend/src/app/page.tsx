@@ -165,41 +165,46 @@ export default function Home() {
       {/* Services Section */}
       <section id="services" className="py-32 md:py-48 bg-[#111111] text-white font-suisse">
         <div className="max-w-[95%] mx-auto px-6">
-          <div className="flex justify-between items-end mb-24 animate-on-scroll">
-            <p className="text-2xl font-serif italic opacity-60">dịch vụ của chúng tôi.</p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-24 animate-on-scroll gap-6">
+            <div>
+              <p className="text-2xl font-serif italic opacity-60 mb-4">dịch vụ của chúng tôi.</p>
+              <h2 className="text-5xl md:text-7xl font-black lowercase tracking-tighter">Event & Marketing <span className="text-[#dafc69]">Solutions</span></h2>
+            </div>
+            <div className="flex gap-4">
+              <div className="px-6 py-2 rounded-full border border-[#dafc69] text-[#dafc69] text-sm font-bold lowercase">đổi mới</div>
+              <div className="px-6 py-2 rounded-full border border-white/20 text-white/40 text-sm font-bold lowercase">chuyên nghiệp</div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {services.length > 0 ? services.slice(0, 2).map((s, idx) => (
-              <Link key={s.id} href={s.category === 'Events' ? '/events' : '/marketing'} className={`group bg-[#1A1A1A] rounded-[3rem] p-12 md:p-16 flex flex-col justify-between min-h-[600px] hover:bg-[#2f70e1] transition-colors duration-700 animate-on-scroll ${idx === 1 ? 'delay-100' : ''}`}>
-                <h3 className="text-[8vw] md:text-[5vw] font-black lowercase leading-none tracking-tighter">{s.title}</h3>
-                <div className="aspect-[4/5] md:aspect-video rounded-[2rem] overflow-hidden my-12 relative">
-                  <img src={s.image_url || (s.category === 'Events' ? "/assets/august/our_services_events_.jpg" : "/assets/august/our_services_marketi.jpg")} alt={s.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 lg:gap-12">
+            {services.length > 0 ? services.map((s, idx) => (
+              <Link key={s.id} href={s.category === 'Events' ? '/events' : '/marketing'} className={`group bg-[#1A1A1A] rounded-[3.5rem] p-10 md:p-14 flex flex-col justify-between min-h-[550px] hover:bg-neutral-900 border border-white/5 hover:border-[#dafc69]/30 transition-all duration-500 animate-on-scroll relative overflow-hidden`}>
+                <div className="absolute top-10 right-10 w-12 h-12 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-[#dafc69] group-hover:border-[#dafc69] transition-all">
+                  <ArrowUpRight className="w-6 h-6 group-hover:text-black transition-colors" />
                 </div>
-                <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-8">
-                  <p className="text-xl opacity-60 lowercase md:max-w-[60%]">{s.description}</p>
-                  <span className="text-xl font-bold lowercase border-b border-white group-hover:border-[#dafc69] group-hover:text-[#dafc69] transition-all flex items-center gap-2 self-end md:self-auto">
-                    (khám phá dịch vụ) <ArrowUpRight className="w-5 h-5" />
+
+                <div>
+                  <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full mb-6 inline-block ${s.category === 'Events' ? 'bg-[#dafc69] text-black' : 'bg-white text-black'}`}>
+                    {s.category}
                   </span>
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-black lowercase leading-[0.9] tracking-tighter mb-8 group-hover:text-[#dafc69] transition-colors">{s.title}</h3>
+                </div>
+
+                <div className="aspect-video rounded-[2.5rem] overflow-hidden my-8 relative border border-white/5">
+                  <img
+                    src={s.image_url || (s.category === 'Events' ? "/assets/august/our_services_events_.jpg" : "/assets/august/our_services_marketi.jpg")}
+                    alt={s.title}
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-1000"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <p className="text-xl text-white/50 lowercase leading-relaxed max-w-[85%]">{s.description}</p>
                 </div>
               </Link>
             )) : !isLoading && (
-              <>
-                <Link href="/events" className="group bg-[#1A1A1A] rounded-[3rem] p-12 md:p-16 flex flex-col justify-between min-h-[600px] hover:bg-[#2f70e1] transition-colors duration-700">
-                  <h3 className="text-[8vw] md:text-[5vw] font-black lowercase leading-none tracking-tighter">Sự kiện</h3>
-                  <div className="aspect-[4/5] md:aspect-video rounded-[2rem] overflow-hidden my-12 relative">
-                    <img src="/assets/august/our_services_events_.jpg" alt="Sự kiện" className="w-full h-full object-cover grayscale" />
-                  </div>
-                  <p className="text-xl opacity-60 lowercase">Sự kiện đặc biệt, quản lý điểm đến và marketing trải nghiệm.</p>
-                </Link>
-                <Link href="/marketing" className="group bg-[#1A1A1A] rounded-[3rem] p-12 md:p-16 flex flex-col justify-between min-h-[600px] hover:bg-[#2f70e1] transition-colors duration-700">
-                  <h3 className="text-[8vw] md:text-[5vw] font-black lowercase leading-none tracking-tighter">Marketing</h3>
-                  <div className="aspect-[4/5] md:aspect-video rounded-[2rem] overflow-hidden my-12 relative">
-                    <img src="/assets/august/our_services_marketi.jpg" alt="Marketing" className="w-full h-full object-cover grayscale" />
-                  </div>
-                  <p className="text-xl opacity-60 lowercase">Chiến lược nội dung, tự động hóa mạng xã hội và hợp tác sáng tạo.</p>
-                </Link>
-              </>
+              <p className="col-span-2 text-center text-white/20 py-20 italic">Chưa có dữ liệu dịch vụ...</p>
             )}
           </div>
         </div>
