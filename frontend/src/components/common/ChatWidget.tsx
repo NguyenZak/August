@@ -48,7 +48,6 @@ export default function ChatWidget() {
         setIsLoading(true);
 
         try {
-            // Mock API call or real one if implemented
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -56,6 +55,10 @@ export default function ChatWidget() {
             });
 
             const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'API Error');
+            }
 
             const aiMessage: Message = {
                 id: (Date.now() + 1).toString(),
@@ -65,11 +68,19 @@ export default function ChatWidget() {
             };
 
             setMessages(prev => [...prev, aiMessage]);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Chat error:', error);
+            let errorMessageText = 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.';
+
+            if (error.message.includes('quota')) {
+                errorMessageText = 'Tài khoản OpenAI đã hết hạn mức (Quota). Vui lòng nạp thêm tiền vào tài khoản OpenAI Billing để tiếp tục sử dụng chatbot.';
+            } else if (error.message.includes('invalid_api_key')) {
+                errorMessageText = 'Mã API OpenAI không hợp lệ. Vui lòng kiểm tra lại cấu hình.';
+            }
+
             const errorMessage: Message = {
                 id: (Date.now() + 1).toString(),
-                text: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.',
+                text: errorMessageText,
                 sender: 'ai',
                 timestamp: new Date()
             };
@@ -115,8 +126,8 @@ export default function ChatWidget() {
                             {messages.map((msg) => (
                                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`max-w-[80%] p-4 rounded-2xl text-sm font-bold leading-relaxed ${msg.sender === 'user'
-                                            ? 'bg-black text-white rounded-tr-none shadow-lg'
-                                            : 'bg-white text-gray-800 rounded-tl-none border border-gray-100 shadow-sm'
+                                        ? 'bg-black text-white rounded-tr-none shadow-lg'
+                                        : 'bg-white text-gray-800 rounded-tl-none border border-gray-100 shadow-sm'
                                         }`}>
                                         {msg.text}
                                     </div>
