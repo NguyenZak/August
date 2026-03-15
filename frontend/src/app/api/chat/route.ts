@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
 
         // Using a more reliable way to call the model
         const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-flash-latest",
         });
 
         const prompt = `Bạn là August AI Assistant, một đại diện thân thiện và chuyên nghiệp của August - Agency chuyên về Branding, Web Design và Digital Marketing.
