@@ -30,7 +30,12 @@ export default function AdminChatLogsPage() {
         try {
             const response = await fetch('/api/cms/chat-logs');
             const data = await response.json();
-            setLogs(data);
+            if (Array.isArray(data)) {
+                setLogs(data);
+            } else {
+                console.error("Received non-array data from API:", data);
+                setLogs([]);
+            }
         } catch (err) {
             console.error("Error fetching chat logs:", err);
         } finally {

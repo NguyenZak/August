@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 
 export async function GET() {
     try {
-        const result = await query('SELECT * FROM services ORDER BY created_at DESC');
-        return NextResponse.json(result.rows);
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('services')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return NextResponse.json(data);
+    } catch (error: any) {
         console.error('Error fetching services:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }
 
@@ -24,13 +29,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Title and category are required' }, { status: 400 });
         }
 
-        const result = await query(
-            'INSERT INTO services (title, description, category, icon) VALUES ($1, $2, $3, $4) RETURNING *',
-            [title, description, category, icon]
-        );
-        return NextResponse.json(result.rows[0], { status: 201 });
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('services')
+            .insert([{ title, description, category, icon }])
+            .select();
+
+        if (error) throw error;
+        return NextResponse.json(data[0], { status: 201 });
+    } catch (error: any) {
         console.error('Error creating service:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }

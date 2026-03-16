@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { Client } from 'pg';
+import { supabase } from '@/lib/supabase';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-
-// Postgres configuration
-const pgConfig = {
-    connectionString: "postgresql://postgres:TEVW3wsIrmlQ9flc@db.ejxpjpzgddmbicallhjl.supabase.co:5432/postgres",
-    ssl: { rejectUnauthorized: false }
-};
 
 export async function POST(req: NextRequest) {
     try {
@@ -41,14 +35,11 @@ export async function POST(req: NextRequest) {
         const reply = response.text() || "Tôi có thể giúp gì thêm cho bạn không?";
 
         // Log to database asynchronously (don't block the response)
-        const client = new Client(pgConfig);
-        client.connect()
-            .then(() => client.query(
-                'INSERT INTO chat_logs (user_message, ai_response) VALUES ($1, $2)',
-                [message, reply]
-            ))
-            .then(() => client.end())
-            .catch(err => console.error('Error logging chat to DB:', err));
+        supabase.from('chat_logs').insert([
+            { user_message: message, ai_response: reply }
+        ]).then(({ error }) => {
+            if (error) console.error('Error logging chat to Supabase:', error);
+        });
 
         return NextResponse.json({ reply });
     } catch (error: any) {
