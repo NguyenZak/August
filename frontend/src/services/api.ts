@@ -140,5 +140,6 @@ export const cmsService = {
         uniqueToday: number;
         deviceBreakdown: Record<string, number>;
         topPaths: [string, number][];
+        recentLogs: any[];
     }>('/analytics/stats'),
 };
