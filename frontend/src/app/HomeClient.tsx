@@ -136,15 +136,29 @@ export default function HomeClient() {
           >
             {heroSlides.length > 0 ? (
               <>
-                <video 
-                  key={heroSlides[currentSlideIndex].video_url}
-                  src={heroSlides[currentSlideIndex].video_url} 
-                  autoPlay 
-                  loop 
-                  muted 
-                  playsInline 
-                  className="w-full h-full object-cover opacity-80" 
-                />
+                {(() => {
+                  const url = heroSlides[currentSlideIndex].video_url;
+                  const isVid = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) !== null;
+                  
+                  return isVid ? (
+                    <video 
+                      key={url}
+                      src={url} 
+                      autoPlay 
+                      loop 
+                      muted 
+                      playsInline 
+                      className="w-full h-full object-cover opacity-80" 
+                    />
+                  ) : (
+                    <img 
+                      key={url}
+                      src={url}
+                      className="w-full h-full object-cover opacity-80"
+                      alt={heroSlides[currentSlideIndex].heading}
+                    />
+                  );
+                })()}
                 
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
                 
@@ -184,7 +198,15 @@ export default function HomeClient() {
             ) : (
                 <>
                 {/* Fallback to settings if no slides */}
-                <video src={settings.hero_video_url || "/assets/august/default.mp4"} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80" />
+                {(() => {
+                    const url = settings.hero_video_url || "/assets/august/default.mp4";
+                    const isVid = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) !== null;
+                    return isVid ? (
+                        <video src={url} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80" />
+                    ) : (
+                        <img src={url} className="w-full h-full object-cover opacity-80" alt="Hero background" />
+                    );
+                })()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
                 <div className="max-w-[95%] mx-auto px-6 relative z-10 w-full h-full flex flex-col justify-end pb-32 font-suisse">
                     <div>

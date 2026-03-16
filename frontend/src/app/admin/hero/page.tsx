@@ -7,7 +7,6 @@ import {
     Trash2,
     Save,
     X,
-    Video,
     Type,
     GripVertical,
     Play,
@@ -16,11 +15,19 @@ import {
     ChevronDown,
     Zap,
     Layout,
-    Eye
+    Eye,
+    Image as ImageIcon,
+    Film,
+    Video
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MediaLibraryModal from "@/components/common/MediaLibraryModal";
 import { cmsService, HeroSlide } from "@/services/api";
+
+const isVideo = (url: string) => {
+    if (!url) return false;
+    return url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) !== null;
+};
 
 export default function AdminHeroPage() {
     const [slides, setSlides] = useState<HeroSlide[]>([]);
@@ -161,17 +168,29 @@ export default function AdminHeroPage() {
                                 className="bg-white rounded-[2.5rem] border border-gray-100 shadow-sm overflow-hidden group hover:shadow-xl transition-all"
                             >
                                 <div className="flex flex-col md:flex-row items-center">
-                                    {/* Video Preview */}
+                                    {/* Video/Image Preview */}
                                     <div className="w-full md:w-80 aspect-video md:aspect-[4/3] bg-black relative overflow-hidden flex-shrink-0">
-                                        <video 
-                                            src={slide.video_url} 
-                                            autoPlay 
-                                            loop 
-                                            muted 
-                                            className="w-full h-full object-cover opacity-60"
-                                        />
+                                        {isVideo(slide.video_url) ? (
+                                            <video 
+                                                src={slide.video_url} 
+                                                autoPlay 
+                                                loop 
+                                                muted 
+                                                className="w-full h-full object-cover opacity-60"
+                                            />
+                                        ) : (
+                                            <img 
+                                                src={slide.video_url} 
+                                                className="w-full h-full object-cover opacity-60"
+                                                alt={slide.heading}
+                                            />
+                                        )}
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            <Play className="w-10 h-10 text-white/50" />
+                                            {isVideo(slide.video_url) ? (
+                                                <Play className="w-10 h-10 text-white/50" />
+                                            ) : (
+                                                <ImageIcon className="w-10 h-10 text-white/50" />
+                                            )}
                                         </div>
                                         <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
                                             <span className="text-[10px] font-black text-white uppercase tracking-widest">Slide #{index + 1}</span>
@@ -191,7 +210,7 @@ export default function AdminHeroPage() {
                                         
                                         <div className="flex items-center gap-6 pt-4">
                                             <div className="flex items-center gap-2 text-gray-400">
-                                                <Video className="w-4 h-4" />
+                                                {isVideo(slide.video_url) ? <Film className="w-4 h-4" /> : <ImageIcon className="w-4 h-4" />}
                                                 <span className="text-xs font-bold truncate max-w-[200px]">{slide.video_url.split('/').pop()}</span>
                                             </div>
                                         </div>
@@ -317,16 +336,16 @@ export default function AdminHeroPage() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Video nền (.mp4)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1">Hình ảnh hoặc Video (.jpg, .png, .mp4,...)</label>
                                         <div className="flex gap-3">
                                             <div className="flex-1 flex items-center gap-3 bg-gray-50 rounded-[1.5rem] px-6 py-4">
-                                                <Video className="w-4 h-4 text-gray-300" />
+                                                {isVideo(formData.video_url || '') ? <Film className="w-4 h-4 text-gray-300" /> : <ImageIcon className="w-4 h-4 text-gray-300" />}
                                                 <input
                                                     required
                                                     value={formData.video_url}
                                                     onChange={e => setFormData({ ...formData, video_url: e.target.value })}
                                                     className="w-full bg-transparent text-sm font-bold outline-none"
-                                                    placeholder="URL video hoặc chọn từ thư viện..."
+                                                    placeholder="URL hoặc chọn từ thư viện..."
                                                 />
                                             </div>
                                             <button 
@@ -334,7 +353,7 @@ export default function AdminHeroPage() {
                                                 onClick={() => setIsMediaModalOpen(true)}
                                                 className="px-8 bg-black text-white rounded-[1.5rem] font-black lowercase text-xs hover:bg-gray-800 transition-colors"
                                             >
-                                                chọn video
+                                                chọn file
                                             </button>
                                         </div>
                                     </div>
