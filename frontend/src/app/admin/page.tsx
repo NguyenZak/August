@@ -28,6 +28,7 @@ export default function AdminDashboard() {
     const [recentInquiries, setRecentInquiries] = useState<Inquiry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [analytics, setAnalytics] = useState<any>(null);
+    const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -93,13 +94,15 @@ export default function AdminDashboard() {
                         value: analyticsRes ? analyticsData.totalVisits.toLocaleString() : "Chưa sẵn sàng", 
                         icon: Activity, 
                         color: "bg-orange-500", 
-                        detail: analyticsRes ? `${analyticsData.uniqueToday} hôm nay` : "Vui lòng kiểm tra database",
+                        detail: analyticsRes ? `${analyticsData.uniqueToday} hôm nay` : (analyticsError || "Vui lòng kiểm tra database"),
                         href: "/admin/analytics"
                     },
                 ]);
 
                 if (results[4].status === 'rejected') {
-                    console.error("Analytics fetch failed:", results[4].reason);
+                    const error = results[4].reason;
+                    setAnalyticsError(error.response?.data?.message || error.message || "Lỗi kết nối");
+                    console.error("Analytics fetch failed:", error);
                 }
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
