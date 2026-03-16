@@ -21,6 +21,7 @@ export interface Service {
     title: string;
     slug: string;
     description: string;
+    content?: string;
     category: string;
     icon: string;
     image_url?: string;
