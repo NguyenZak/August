@@ -25,19 +25,9 @@ export default function AnalyticsPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [statsRes] = await Promise.all([
-                    cmsService.getAnalyticsStats()
-                ])
+                const statsRes = await cmsService.getAnalyticsStats()
                 setAnalytics(statsRes.data)
-
-                const supabase = createClient()
-                const { data: logsData } = await supabase
-                    .from('visitor_logs')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(50)
-                
-                setLogs(logsData || [])
+                setLogs(statsRes.data.recentLogs || [])
             } catch (error) {
                 console.error('Error fetching analytics:', error)
             } finally {

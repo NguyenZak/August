@@ -51,11 +51,21 @@ export async function GET(req: NextRequest) {
             return acc
         }, {}) || {}).sort((a: any, b: any) => b[1] - a[1]).slice(0, 5)
 
+        // 5. Recent logs
+        const { data: logs, error: logsError } = await supabase
+            .from('visitor_logs')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(50)
+
+        if (logsError) throw logsError
+
         return NextResponse.json({
             totalVisits: totalVisits || 0,
             uniqueToday: uniqueTodayCount,
             deviceBreakdown: deviceStats || {},
-            topPaths: pathStats
+            topPaths: pathStats,
+            recentLogs: logs || []
         })
     } catch (error: any) {
         console.error('Analytics stats error:', error)
