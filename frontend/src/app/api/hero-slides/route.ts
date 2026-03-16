@@ -37,6 +37,9 @@ export async function POST(req: NextRequest) {
             .select();
 
         if (error) throw error;
+        if (!data || data.length === 0) {
+            return NextResponse.json({ message: 'Failed to create slide' }, { status: 400 });
+        }
         return NextResponse.json(data[0], { status: 201 });
     } catch (error: any) {
         console.error('Error creating hero slide:', error);
