@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Mail, Instagram, Info } from "lucide-react";
+import { ArrowUpRight, Mail, Instagram, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import PublicNavbar from "@/components/layout/PublicNavbar";
 import { useContact } from "@/context/ContactContext";
-import { cmsService } from "@/services/api";
+import { cmsService, HeroSlide } from "@/services/api";
+import { motion, AnimatePresence } from "framer-motion";
 
 /* Tailwind Safelist for dynamic grids:
 md:col-start-1 md:col-start-2 md:col-start-3 md:col-start-4 md:col-start-5 md:col-start-6 md:col-start-7 md:col-start-8 md:col-start-9 md:col-start-10 md:col-start-11 md:col-start-12
@@ -21,18 +22,21 @@ export default function HomeClient() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const { openContact } = useContact();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [casesRes, servicesRes, reviewsRes, partnersRes, settingsRes] = await Promise.all([
+        const [casesRes, servicesRes, reviewsRes, partnersRes, settingsRes, heroRes] = await Promise.all([
           cmsService.getCases(),
           cmsService.getServices(),
           cmsService.getReviews(),
           cmsService.getPartners(),
-          cmsService.getSettings()
+          cmsService.getSettings(),
+          cmsService.getHeroSlides()
         ]);
 
         // Mapped Cases
@@ -50,6 +54,7 @@ export default function HomeClient() {
         setReviews(reviewsRes.data);
         setPartners(partnersRes.data);
         setSettings(settingsRes.data);
+        setHeroSlides(heroRes.data.sort((a, b) => (a.order_index || 0) - (b.order_index || 0)));
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -58,6 +63,17 @@ export default function HomeClient() {
     };
     fetchData();
   }, []);
+
+  // Slider Auto-play
+  useEffect(() => {
+    if (heroSlides.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length);
+    }, 8000); // 8 seconds per slide
+
+    return () => clearInterval(interval);
+  }, [heroSlides]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -107,33 +123,123 @@ export default function HomeClient() {
 
       <PublicNavbar activeSection={activeSection} />
 
-      {/* Hero Section */}
-      <section className="relative min-h-[120vh] flex flex-col justify-end bg-black overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <video src={settings.hero_video_url || "/assets/august/default.mp4"} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-        </div>
+      {/* Hero Slider Section */}
+      <section className="relative min-h-[120vh] flex flex-col justify-end bg-black overflow-hidden group/hero">
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={currentSlideIndex}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1, ease: "easeInOut" }}
+            className="absolute inset-0 z-0"
+          >
+            {heroSlides.length > 0 ? (
+              <>
+                <video 
+                  key={heroSlides[currentSlideIndex].video_url}
+                  src={heroSlides[currentSlideIndex].video_url} 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="w-full h-full object-cover opacity-80" 
+                />
+                
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                
+                <div className="max-w-[95%] mx-auto px-6 relative z-10 w-full h-full flex flex-col justify-end pb-32 font-suisse">
+                  <motion.div 
+                    initial={{ y: 50, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  >
+                    <p className="text-white text-6xl md:text-8xl font-serif italic mb-2 lowercase">{heroSlides[currentSlideIndex].title_1}</p>
+                    <p className="text-white text-6xl md:text-8xl font-serif italic ml-20 md:ml-40 lowercase">{heroSlides[currentSlideIndex].title_2}</p>
+                  </motion.div>
 
-        <div className="max-w-[95%] mx-auto px-6 relative z-10 w-full pb-32 flex flex-col items-start font-suisse">
-          <div className="animate-on-scroll">
-            <p className="text-white text-6xl md:text-8xl font-serif italic mb-2">{settings.hero_title_1 || "agency sự kiện"}</p>
-            <p className="text-white text-6xl md:text-8xl font-serif italic ml-20 md:ml-40">{settings.hero_title_2 || "& marketing"}</p>
-          </div>
+                  <div className="w-full flex justify-end mt-20 font-suisse">
+                    <div className="max-w-3xl text-right">
+                      <motion.h1 
+                        initial={{ y: 50, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.8, duration: 0.8 }}
+                        className="text-[12vw] md:text-[6vw] leading-[0.9] font-black text-white lowercase tracking-tighter select-none mb-10 whitespace-pre-line"
+                      >
+                        {heroSlides[currentSlideIndex].heading}
+                      </motion.h1>
+                      <motion.button
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 1.1, duration: 0.5 }}
+                        onClick={openContact}
+                        className="inline-block px-8 md:px-10 py-3 md:py-4 rounded-full border-2 font-black lowercase text-lg md:text-xl transition-all duration-300 bg-[#dafc69] text-black border-[#dafc69] hover:bg-transparent hover:text-[#dafc69]"
+                      >
+                        liên hệ ngay
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+                <>
+                {/* Fallback to settings if no slides */}
+                <video src={settings.hero_video_url || "/assets/august/default.mp4"} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                <div className="max-w-[95%] mx-auto px-6 relative z-10 w-full h-full flex flex-col justify-end pb-32 font-suisse">
+                    <div>
+                        <p className="text-white text-6xl md:text-8xl font-serif italic mb-2">{settings.hero_title_1 || "agency sự kiện"}</p>
+                        <p className="text-white text-6xl md:text-8xl font-serif italic ml-20 md:ml-40">{settings.hero_title_2 || "& marketing"}</p>
+                    </div>
 
-          <div className="w-full flex justify-end mt-20 animate-on-scroll font-suisse">
-            <div className="max-w-2xl text-right">
-              <h1 className="text-[12vw] md:text-[6vw] leading-[0.9] font-black text-white lowercase tracking-tighter select-none mb-10 whitespace-pre-line">
-                {settings.hero_heading || "from concept,\nto activation,\nto amplification"}
-              </h1>
-              <button
-                onClick={openContact}
-                className="inline-block px-8 md:px-10 py-3 md:py-4 rounded-full border-2 font-black lowercase text-lg md:text-xl transition-all duration-300 bg-[#dafc69] text-black border-[#dafc69] hover:bg-transparent hover:text-[#dafc69]"
-              >
-                liên hệ ngay
-              </button>
+                    <div className="w-full flex justify-end mt-20 font-suisse">
+                        <div className="max-w-2xl text-right">
+                            <h1 className="text-[12vw] md:text-[6vw] leading-[0.9] font-black text-white lowercase tracking-tighter select-none mb-10 whitespace-pre-line">
+                            {settings.hero_heading || "from concept,\nto activation,\nto amplification"}
+                            </h1>
+                            <button
+                            onClick={openContact}
+                            className="inline-block px-8 md:px-10 py-3 md:py-4 rounded-full border-2 font-black lowercase text-lg md:text-xl transition-all duration-300 bg-[#dafc69] text-black border-[#dafc69] hover:bg-transparent hover:text-[#dafc69]"
+                            >
+                            liên hệ ngay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Slider Controls */}
+        {heroSlides.length > 1 && (
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex items-center gap-6">
+                <div className="flex gap-2">
+                    {heroSlides.map((_, idx) => (
+                        <button 
+                            key={idx}
+                            onClick={() => setCurrentSlideIndex(idx)}
+                            className={`h-1 rounded-full transition-all duration-500 ${idx === currentSlideIndex ? 'w-12 bg-[#dafc69]' : 'w-4 bg-white/20 hover:bg-white/40'}`}
+                        />
+                    ))}
+                </div>
+                
+                <div className="flex gap-2 ml-4">
+                    <button 
+                        onClick={() => setCurrentSlideIndex((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
+                        className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors text-white"
+                    >
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button 
+                         onClick={() => setCurrentSlideIndex((prev) => (prev + 1) % heroSlides.length)}
+                        className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors text-white"
+                    >
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* About Section */}

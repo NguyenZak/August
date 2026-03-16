@@ -27,6 +27,16 @@ export interface Service {
     image_url?: string;
 }
 
+export interface HeroSlide {
+    id: string;
+    title_1: string;
+    title_2: string;
+    heading: string;
+    video_url: string;
+    order_index: number;
+    created_at: string;
+}
+
 export interface Review {
     id: string;
     author: string;
@@ -143,4 +153,11 @@ export const cmsService = {
         topPaths: [string, number][];
         recentLogs: any[];
     }>('/analytics/stats'),
+
+    // Hero Slides
+    getHeroSlides: () => api.get<HeroSlide[]>('/hero-slides'),
+    createHeroSlide: (data: Partial<HeroSlide>) => api.post('/hero-slides', data),
+    updateHeroSlide: (id: string, data: Partial<HeroSlide>) => api.put(`/hero-slides/${id}`, data),
+    deleteHeroSlide: (id: string) => api.delete(`/hero-slides/${id}`),
+    reorderHeroSlides: (items: { id: string, order_index: number }[]) => api.put('/hero-slides/reorder', { items }),
 };

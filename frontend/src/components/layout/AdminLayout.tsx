@@ -32,6 +32,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const navItems = [
         { name: 'Dashboard CMS', href: '/admin', icon: LayoutDashboard },
+        { name: 'Quản lý Hero Slider', href: '/admin/hero', icon: Image },
         { name: 'Quản lý Dự án', href: '/admin/cases', icon: Briefcase },
         { name: 'Quản lý Dịch vụ', href: '/admin/services', icon: Wrench },
         { name: 'Quản lý Đánh giá', href: '/admin/reviews', icon: Star },
