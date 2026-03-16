@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
+import { slugify } from '@/lib/utils';
+
+async function generateUniqueSlug(suggestedSlug: string, table: string, excludeId?: string): Promise<string> {
+    let baseSlug = slugify(suggestedSlug);
+    if (!baseSlug) baseSlug = 'service';
+    let index = 0;
+    let newSlug = baseSlug;
+    while (true) {
+        let query = supabase.from(table).select('id').eq('slug', newSlug);
+        if (excludeId) query = query.neq('id', excludeId);
+        const { data } = await query;
+        if (!data || data.length === 0) return newSlug;
+        index++;
+        newSlug = `${baseSlug}-${index}`;
+    }
+}
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const user = authenticateJWT(req);
@@ -9,21 +25,36 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     try {
         const { id } = await params;
         const body = await req.json();
-        const { title, description, category, icon } = body;
+        const { title, slug: providedSlug, description, category, icon, image_url } = body;
 
-        const result = await query(
-            'UPDATE services SET title = $1, description = $2, category = $3, icon = $4, updated_at = CURRENT_TIMESTAMP WHERE id = $5 RETURNING *',
-            [title, description, category, icon, id]
-        );
+        let slug = providedSlug;
+        if (slug) {
+            slug = await generateUniqueSlug(slug, 'services', id);
+        }
 
-        if (result.rowCount === 0) {
+        const { data, error } = await supabase
+            .from('services')
+            .update({
+                title,
+                ...(slug && { slug }),
+                description,
+                category,
+                icon,
+                image_url,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', id)
+            .select();
+
+        if (error) throw error;
+        if (!data || data.length === 0) {
             return NextResponse.json({ message: 'Service not found' }, { status: 404 });
         }
 
-        return NextResponse.json(result.rows[0]);
-    } catch (error) {
+        return NextResponse.json(data[0]);
+    } catch (error: any) {
         console.error('Error updating service:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }
 
@@ -33,15 +64,20 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     try {
         const { id } = await params;
-        const result = await query('DELETE FROM services WHERE id = $1 RETURNING *', [id]);
+        const { data, error } = await supabase
+            .from('services')
+            .delete()
+            .eq('id', id)
+            .select();
 
-        if (result.rowCount === 0) {
+        if (error) throw error;
+        if (!data || data.length === 0) {
             return NextResponse.json({ message: 'Service not found' }, { status: 404 });
         }
 
         return NextResponse.json({ message: 'Service deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error deleting service:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }

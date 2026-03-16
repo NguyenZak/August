@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
@@ -14,13 +14,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Invalid IDs' }, { status: 400 });
         }
 
-        await query(
-            'UPDATE media SET folder_id = $1 WHERE id = ANY($2)',
-            [folder_id === 'root' ? null : folder_id, ids]
-        );
+        const { error } = await supabase
+            .from('media')
+            .update({ folder_id: folder_id === 'root' ? null : folder_id })
+            .in('id', ids);
+
+        if (error) throw error;
+
         return NextResponse.json({ message: 'Bulk move successful' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error bulk moving media:', error);
-        return NextResponse.json({ message: 'Failed to move media' }, { status: 500 });
+        return NextResponse.json({ message: 'Failed to move media', error: error.message }, { status: 500 });
     }
 }

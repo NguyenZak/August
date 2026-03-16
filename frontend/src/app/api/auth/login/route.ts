@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'august_cms_secret_key_2024';
 
@@ -14,10 +14,13 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Email and password are required' }, { status: 400 });
         }
 
-        const result = await query('SELECT * FROM users WHERE email = $1', [email]);
-        const user = result.rows[0];
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('email', email)
+            .single();
 
-        if (!user) {
+        if (error || !user) {
             return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
         }
 
@@ -32,8 +35,7 @@ export async function POST(req: NextRequest) {
         console.error('Login error:', error);
         return NextResponse.json({
             message: 'Internal server error',
-            debug_error: String(error),
-            debug_stack: error?.stack
+            error: error.message
         }, { status: 500 });
     }
 }

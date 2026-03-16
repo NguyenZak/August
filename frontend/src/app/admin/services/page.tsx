@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import MediaLibraryModal from "@/components/common/MediaLibraryModal";
 import { cmsService, Service } from "@/services/api";
+import { slugify } from "@/lib/utils";
 
 export default function AdminServicesPage() {
     const [services, setServices] = useState<Service[]>([]);
@@ -24,6 +25,7 @@ export default function AdminServicesPage() {
     const [editingItem, setEditingItem] = useState<Service | null>(null);
     const [formData, setFormData] = useState({
         title: "",
+        slug: "",
         description: "",
         category: "Marketing",
         icon: "Zap",
@@ -52,6 +54,7 @@ export default function AdminServicesPage() {
             setEditingItem(item);
             setFormData({
                 title: item.title,
+                slug: item.slug || "",
                 description: item.description,
                 category: item.category,
                 icon: item.icon || "Zap",
@@ -61,6 +64,7 @@ export default function AdminServicesPage() {
             setEditingItem(null);
             setFormData({
                 title: "",
+                slug: "",
                 description: "",
                 category: "Marketing",
                 icon: "Zap",
@@ -156,9 +160,33 @@ export default function AdminServicesPage() {
                                         <button type="button" onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full"><X className="w-6 h-6 text-gray-400" /></button>
                                     </div>
                                     <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tên dịch vụ</label>
-                                            <input required value={formData.title} onChange={e => setFormData({ ...formData, title: e.target.value })} className="w-full px-6 py-4 bg-gray-50 rounded-[1.5rem] text-sm font-bold focus:ring-2 focus:ring-[#dafc69] outline-none" />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Tên dịch vụ</label>
+                                                <input
+                                                    required
+                                                    value={formData.title}
+                                                    onChange={e => {
+                                                        const newTitle = e.target.value;
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            title: newTitle,
+                                                            slug: editingItem ? prev.slug : slugify(newTitle)
+                                                        }));
+                                                    }}
+                                                    className="w-full px-6 py-4 bg-gray-50 rounded-[1.5rem] text-sm font-bold focus:ring-2 focus:ring-[#dafc69] outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Đường dẫn (Slug)</label>
+                                                <input
+                                                    required
+                                                    value={formData.slug}
+                                                    onChange={e => setFormData({ ...formData, slug: slugify(e.target.value) })}
+                                                    className="w-full px-6 py-4 bg-gray-50 rounded-[1.5rem] text-sm font-bold focus:ring-2 focus:ring-[#dafc69] outline-none"
+                                                    placeholder="tên-dich-vu"
+                                                />
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mô tả ngắn</label>

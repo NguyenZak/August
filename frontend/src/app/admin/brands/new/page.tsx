@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/layout/AdminLayout'
 import { Globe, ArrowLeft, Save, Sparkles } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { slugify } from '@/lib/utils'
 
 export default function NewBrandPage() {
     const [loading, setLoading] = useState(false)
@@ -13,6 +14,9 @@ export default function NewBrandPage() {
     const router = useRouter()
     const supabase = createClient()
     const { user: authUser } = useAuth()
+    
+    const [name, setName] = useState('')
+    const [subdomain, setSubdomain] = useState('')
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -97,6 +101,12 @@ export default function NewBrandPage() {
                                         <input
                                             name="name"
                                             required
+                                            value={name}
+                                            onChange={(e) => {
+                                                const newName = e.target.value;
+                                                setName(newName);
+                                                setSubdomain(slugify(newName));
+                                            }}
                                             placeholder="Tên thương hiệu (vd: August Agency)"
                                             className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all"
                                         />
@@ -106,6 +116,8 @@ export default function NewBrandPage() {
                                             <input
                                                 name="subdomain"
                                                 required
+                                                value={subdomain}
+                                                onChange={(e) => setSubdomain(slugify(e.target.value))}
                                                 placeholder="subdomain"
                                                 className="flex-1 px-6 py-4 bg-transparent border-none outline-none font-bold text-sm placeholder:text-gray-300"
                                             />

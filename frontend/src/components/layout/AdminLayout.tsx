@@ -16,7 +16,8 @@ import {
     ChevronRight,
     Globe,
     Star,
-    Image
+    Image,
+    Activity
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -35,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         { name: 'Quản lý Dịch vụ', href: '/admin/services', icon: Wrench },
         { name: 'Quản lý Đánh giá', href: '/admin/reviews', icon: Star },
         { name: 'Quản lý Đối tác', href: '/admin/clients', icon: Users },
+        { name: 'Thống kê truy cập', href: '/admin/analytics', icon: Activity },
         { name: 'Hộp thư liên hệ', href: '/admin/inquiries', icon: Mail },
         { name: 'Lịch sử Chat', href: '/admin/chat-logs', icon: MessageSquare },
         { name: 'Thư viện Media', href: '/admin/media', icon: Image },

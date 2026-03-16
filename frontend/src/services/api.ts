@@ -19,6 +19,7 @@ export interface Case {
 export interface Service {
     id: string;
     title: string;
+    slug: string;
     description: string;
     category: string;
     icon: string;
@@ -110,9 +111,9 @@ export const cmsService = {
     deleteInquiry: (id: string) => api.delete(`/inquiries/${id}`),
 
     // Media
-    uploadFiles: (files: File[], folder_id?: string) => {
+    uploadFile: (file: File, folder_id?: string) => {
         const formData = new FormData();
-        files.forEach(file => formData.append('files', file));
+        formData.append('files', file); // API expects 'files' array even for one
         if (folder_id) formData.append('folder_id', folder_id);
         return api.post<Array<{ url: string }>>('upload', formData);
     },
@@ -132,4 +133,12 @@ export const cmsService = {
     // Advanced Media Actions
     bulkMoveMedia: (ids: string[], folder_id: string | null) =>
         api.post('/media/bulk-move', { ids, folder_id: folder_id || 'root' }),
+
+    // Analytics
+    getAnalyticsStats: () => api.get<{
+        totalVisits: number;
+        uniqueToday: number;
+        deviceBreakdown: Record<string, number>;
+        topPaths: [string, number][];
+    }>('/analytics/stats'),
 };

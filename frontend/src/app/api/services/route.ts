@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
+import { slugify } from '@/lib/utils';
+
+async function generateUniqueSlug(suggestedSlug: string, table: string, excludeId?: string): Promise<string> {
+    let baseSlug = slugify(suggestedSlug);
+    if (!baseSlug) baseSlug = 'service';
+    let index = 0;
+    let newSlug = baseSlug;
+    while (true) {
+        let query = supabase.from(table).select('id').eq('slug', newSlug);
+        if (excludeId) query = query.neq('id', excludeId);
+        const { data } = await query;
+        if (!data || data.length === 0) return newSlug;
+        index++;
+        newSlug = `${baseSlug}-${index}`;
+    }
+}
 
 export async function GET() {
     try {
@@ -23,15 +39,17 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { title, description, category, icon } = body;
+        const { title, slug: providedSlug, description, category, icon, image_url } = body;
 
         if (!title || !category) {
             return NextResponse.json({ message: 'Title and category are required' }, { status: 400 });
         }
 
+        const slug = await generateUniqueSlug(providedSlug || title, 'services');
+
         const { data, error } = await supabase
             .from('services')
-            .insert([{ title, description, category, icon }])
+            .insert([{ title, slug, description, category, icon, image_url }])
             .select();
 
         if (error) throw error;

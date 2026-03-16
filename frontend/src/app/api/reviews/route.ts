@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 
 export async function GET() {
     try {
-        const result = await query('SELECT * FROM reviews ORDER BY created_at DESC');
-        return NextResponse.json(result.rows);
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('reviews')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return NextResponse.json(data);
+    } catch (error: any) {
         console.error('Error fetching reviews:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }
 
@@ -24,13 +29,20 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Author and content are required' }, { status: 400 });
         }
 
-        const result = await query(
-            'INSERT INTO reviews (author, position, content, project) VALUES ($1, $2, $3, $4) RETURNING *',
-            [author, position, content, project]
-        );
-        return NextResponse.json(result.rows[0], { status: 201 });
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('reviews')
+            .insert([{
+                author,
+                position,
+                content,
+                project
+            }])
+            .select();
+
+        if (error) throw error;
+        return NextResponse.json(data[0], { status: 201 });
+    } catch (error: any) {
         console.error('Error creating review:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }

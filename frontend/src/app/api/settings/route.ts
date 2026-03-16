@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 
 export async function GET() {
     try {
-        const result = await query('SELECT * FROM site_settings');
-        const settings = result.rows.reduce((acc: any, row: any) => {
+        const { data, error } = await supabase
+            .from('site_settings')
+            .select('*');
+
+        if (error) throw error;
+
+        const settings = data.reduce((acc: any, row: any) => {
             acc[row.key] = row.value;
             return acc;
         }, {});
         return NextResponse.json(settings);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching settings:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }
 
@@ -23,15 +28,21 @@ export async function POST(req: NextRequest) {
     try {
         const settings = await req.json(); // Expecting { key: value, ... }
 
-        for (const [key, value] of Object.entries(settings)) {
-            await query(
-                'INSERT INTO site_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP',
-                [key, value]
-            );
-        }
+        const upsertData = Object.entries(settings).map(([key, value]) => ({
+            key,
+            value,
+            updated_at: new Date().toISOString()
+        }));
+
+        const { error } = await supabase
+            .from('site_settings')
+            .upsert(upsertData, { onConflict: 'key' });
+
+        if (error) throw error;
+
         return NextResponse.json({ message: 'Settings updated successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error updating settings:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }

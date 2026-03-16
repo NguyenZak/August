@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 import { v2 as cloudinary } from 'cloudinary';
 
@@ -15,19 +15,30 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     try {
         const { id } = await params;
-        const mediaResult = await query('SELECT public_id FROM media WHERE id = $1', [id]);
-        if (mediaResult.rowCount === 0) return NextResponse.json({ message: 'Media not found' }, { status: 404 });
+        const { data: media, error: fetchError } = await supabase
+            .from('media')
+            .select('public_id')
+            .eq('id', id)
+            .single();
 
-        const { public_id } = mediaResult.rows[0];
+        if (fetchError || !media) return NextResponse.json({ message: 'Media not found' }, { status: 404 });
+
+        const { public_id } = media;
 
         // Delete from Cloudinary
         await cloudinary.uploader.destroy(public_id);
 
         // Delete from DB
-        await query('DELETE FROM media WHERE id = $1', [id]);
+        const { error: deleteError } = await supabase
+            .from('media')
+            .delete()
+            .eq('id', id);
+
+        if (deleteError) throw deleteError;
+
         return NextResponse.json({ message: 'Media deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error deleting media:', error);
-        return NextResponse.json({ message: 'Failed to delete media' }, { status: 500 });
+        return NextResponse.json({ message: 'Failed to delete media', error: error.message }, { status: 500 });
     }
 }

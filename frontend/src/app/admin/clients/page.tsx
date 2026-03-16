@@ -20,7 +20,7 @@ export default function AdminClientsPage() {
 
         setIsUploading(true);
         try {
-            const response = await cmsService.uploadFiles([file]);
+            const response = await cmsService.uploadFile(file);
             setFormData(prev => ({ ...prev, logo: response.data[0].url }));
         } catch (err) {
             console.error("Upload failed:", err);

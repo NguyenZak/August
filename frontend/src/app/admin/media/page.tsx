@@ -48,6 +48,13 @@ interface ModalState {
     onConfirm: (val?: string) => void;
 }
 
+interface UploadProgress {
+    total: number;
+    completed: number;
+    percentage: number;
+    isUploading: boolean;
+}
+
 export default function AdminMediaPage() {
     const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -55,12 +62,17 @@ export default function AdminMediaPage() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [filterType, setFilterType] = useState<string>('all');
-    const [isUploading, setIsUploading] = useState(false);
     const [folders, setFolders] = useState<Folder[]>([]);
     const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
     const [isDragActive, setIsDragActive] = useState(false);
     const [contextMenu, setContextMenu] = useState<{ x: number, y: number, folderId: string } | null>(null);
     const [draggedItem, setDraggedItem] = useState<{ type: 'file' | 'folder', id: string } | null>(null);
+    const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
+        total: 0,
+        completed: 0,
+        percentage: 0,
+        isUploading: false
+    });
 
     // Custom Modal State
     const [modal, setModal] = useState<ModalState>({
@@ -100,16 +112,71 @@ export default function AdminMediaPage() {
         setSelectedIds(newSelected);
     };
 
+    const categories = [
+        { id: 'all', label: 'Tất cả tệp', icon: LayoutGrid },
+        { id: 'image', label: 'Hình ảnh', icon: ImageIcon },
+        { id: 'raw', label: 'Tài liệu (PDF/Khác)', icon: FileText },
+    ];
+
+    const filteredItems = mediaItems.filter(item => {
+        const matchesSearch = item.filename.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = filterType === 'all' || item.resource_type === filterType;
+        return matchesSearch && matchesFilter;
+    });
+
+    const handleSelectAll = () => {
+        if (selectedIds.size === filteredItems.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredItems.map(item => item.id)));
+        }
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+                // Check if not typing in an input
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+                    return;
+                }
+                e.preventDefault();
+                setSelectedIds(new Set(filteredItems.map(item => item.id)));
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [filteredItems]);
+
     const handleUpload = async (files: File[]) => {
         if (files.length === 0) return;
-        setIsUploading(true);
+        
+        setUploadProgress({
+            total: files.length,
+            completed: 0,
+            percentage: 0,
+            isUploading: true
+        });
+
         try {
-            await cmsService.uploadFiles(files, currentFolderId || undefined);
+            let completed = 0;
+            for (const file of files) {
+                await cmsService.uploadFile(file, currentFolderId || undefined);
+                completed++;
+                setUploadProgress(prev => ({
+                    ...prev,
+                    completed,
+                    percentage: Math.round((completed / files.length) * 100)
+                }));
+            }
             await fetchData();
         } catch (error) {
             alert("Tải lên thất bại!");
         } finally {
-            setIsUploading(false);
+            setTimeout(() => {
+                setUploadProgress(prev => ({ ...prev, isUploading: false }));
+            }, 1000);
         }
     };
 
@@ -122,7 +189,7 @@ export default function AdminMediaPage() {
             title: "Tạo thư mục mới",
             placeholder: "Nhập tên thư mục...",
             value: "",
-            onConfirm: async (name) => {
+            onConfirm: async (name: string | undefined) => {
                 if (!name) return;
                 try {
                     await cmsService.createFolder({ name, parent_id: parentId || currentFolderId });
@@ -142,7 +209,7 @@ export default function AdminMediaPage() {
             title: "Đổi tên thư mục",
             placeholder: "Nhập tên mới...",
             value: folder?.name || "",
-            onConfirm: async (newName) => {
+            onConfirm: async (newName: string | undefined) => {
                 if (!newName || newName === folder?.name) return;
                 try {
                     await cmsService.updateFolder(id, { name: newName });
@@ -237,17 +304,7 @@ export default function AdminMediaPage() {
         }
     };
 
-    const filteredItems = mediaItems.filter(item => {
-        const matchesSearch = item.filename.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesFilter = filterType === 'all' || item.resource_type === filterType;
-        return matchesSearch && matchesFilter;
-    });
-
-    const categories = [
-        { id: 'all', label: 'Tất cả tệp', icon: LayoutGrid },
-        { id: 'image', label: 'Hình ảnh', icon: ImageIcon },
-        { id: 'raw', label: 'Tài liệu (PDF/Khác)', icon: FileText },
-    ];
+    // --- DRAG & DROP ---
 
     const renderFolderTree = (parentId: string | null, depth = 0) => {
         return folders
@@ -382,6 +439,38 @@ export default function AdminMediaPage() {
                     )}
                 </AnimatePresence>
 
+                {/* Upload Progress Overlay */}
+                <AnimatePresence>
+                    {uploadProgress.isUploading && (
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            className="fixed bottom-12 right-12 z-[300] bg-black text-white p-6 rounded-[2rem] shadow-2xl border border-white/10 w-72"
+                        >
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-[#dafc69] rounded-lg">
+                                        <Loader2 className="w-4 h-4 text-black animate-spin" />
+                                    </div>
+                                    <span className="text-xs font-black uppercase tracking-widest">đang tải lên...</span>
+                                </div>
+                                <span className="text-[10px] font-bold text-[#dafc69]">{uploadProgress.percentage}%</span>
+                            </div>
+                            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden mb-3">
+                                <motion.div 
+                                    className="h-full bg-[#dafc69]"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${uploadProgress.percentage}%` }}
+                                />
+                            </div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">
+                                {uploadProgress.completed} / {uploadProgress.total} tệp đã hoàn tất
+                            </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* Sidebar */}
                 <div className="w-64 bg-gray-50/50 border-r border-gray-100 flex flex-col shrink-0">
                     <div className="p-8 pb-4">
@@ -496,10 +585,20 @@ export default function AdminMediaPage() {
                         </div>
 
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleSelectAll}
+                                className="px-6 py-3 bg-white border border-gray-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black hover:border-gray-200 transition-all flex items-center gap-2 shadow-sm"
+                            >
+                                {selectedIds.size === filteredItems.length && filteredItems.length > 0 ? (
+                                    <>Bỏ chọn tất cả</>
+                                ) : (
+                                    <>Chọn tất cả <span className="bg-gray-100 px-1.5 py-0.5 rounded text-[9px] ml-1">⌘A</span></>
+                                )}
+                            </button>
                             <label className="bg-[#dafc69] hover:bg-[#cce854] text-black px-6 py-3 rounded-2xl text-xs font-black lowercase cursor-pointer flex items-center gap-2 transition-all shadow-lg active:scale-95">
-                                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                                {isUploading ? "uploading..." : "upload items"}
-                                <input type="file" className="hidden" onChange={(e) => handleUpload(Array.from(e.target.files || []))} disabled={isUploading} multiple />
+                                {uploadProgress.isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                {uploadProgress.isUploading ? "uploading..." : "upload items"}
+                                <input type="file" className="hidden" onChange={(e) => handleUpload(Array.from(e.target.files || []))} disabled={uploadProgress.isUploading} multiple />
                             </label>
                         </div>
                     </div>

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
 
@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
                 const isImage = file.type.startsWith('image/');
 
                 // Upload stream promise
+                console.log(`[Upload] Starting Cloudinary upload for: ${file.name} (${file.type}, ${file.size} bytes)`);
                 const uploadResult = await new Promise<UploadApiResponse>((resolve, reject) => {
                     const uploadStream = cloudinary.uploader.upload_stream(
                         {
@@ -48,18 +49,37 @@ export async function POST(req: NextRequest) {
                             ] : []
                         },
                         (error, result) => {
-                            if (error) reject(error);
-                            else resolve(result as UploadApiResponse);
+                            if (error) {
+                                console.error(`[Upload] Cloudinary error for ${file.name}:`, error);
+                                reject(error);
+                            } else {
+                                console.log(`[Upload] Cloudinary success for ${file.name}:`, result?.secure_url);
+                                resolve(result as UploadApiResponse);
+                            }
                         }
                     );
                     uploadStream.end(buffer);
                 });
 
                 // Save to Database
-                const dbResult = await query(
-                    'INSERT INTO media (filename, url, public_id, resource_type, size, folder_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                    [file.name, uploadResult.secure_url, uploadResult.public_id, uploadResult.resource_type || 'raw', file.size, folder_id || null]
-                );
+                console.log(`[Upload] Saving to Supabase 'media' table: ${file.name}`);
+                const { data: dbData, error: dbError } = await supabase
+                    .from('media')
+                    .insert([{
+                        filename: file.name,
+                        url: uploadResult.secure_url,
+                        public_id: uploadResult.public_id,
+                        resource_type: uploadResult.resource_type || 'raw',
+                        size: file.size,
+                        folder_id: folder_id || null
+                    }])
+                    .select();
+
+                if (dbError) {
+                    console.error(`[Upload] Supabase error for ${file.name}:`, dbError);
+                    throw dbError;
+                }
+                console.log(`[Upload] Supabase success for ${file.name}, ID: ${dbData[0]?.id}`);
 
                 results.push({
                     url: uploadResult.secure_url,
@@ -67,24 +87,25 @@ export async function POST(req: NextRequest) {
                     resource_type: uploadResult.resource_type || 'raw',
                     format: uploadResult.format,
                     filename: file.name,
-                    id: dbResult.rows[0]?.id,
+                    id: dbData[0]?.id,
                     folder_id: folder_id || null,
                     storage: 'cloudinary'
                 });
 
             } catch (fileError: any) {
-                console.error(`Error processing individual file ${file.name}:`, fileError);
-                throw new Error(`Failed to process ${file.name}: ${fileError.message || fileError}`);
+                console.error(`[Upload] Error processing individual file ${file.name}:`, fileError);
+                throw fileError; // Propagate the actual error
             }
         }
 
         return NextResponse.json(results);
 
     } catch (error: any) {
-        console.error('Bulk upload final error:', error);
+        console.error('[Upload] Bulk upload final error:', error);
         return NextResponse.json({
             message: 'Failed to upload files',
-            error: error?.message || "Unknown error"
+            error: error?.message || error,
+            details: error?.details || error?.hint || null
         }, { status: 500 });
     }
 }

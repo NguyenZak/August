@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
@@ -7,11 +7,16 @@ export async function GET(req: NextRequest) {
     if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
     try {
-        const result = await query('SELECT * FROM folders ORDER BY name ASC');
-        return NextResponse.json(result.rows);
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('folders')
+            .select('*')
+            .order('name', { ascending: true });
+
+        if (error) throw error;
+        return NextResponse.json(data);
+    } catch (error: any) {
         console.error('Error fetching folders:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }
 
@@ -25,13 +30,15 @@ export async function POST(req: NextRequest) {
 
         if (!name) return NextResponse.json({ message: 'Folder name is required' }, { status: 400 });
 
-        const result = await query(
-            'INSERT INTO folders (name, parent_id) VALUES ($1, $2) RETURNING *',
-            [name, parent_id]
-        );
-        return NextResponse.json(result.rows[0], { status: 201 });
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('folders')
+            .insert([{ name, parent_id }])
+            .select();
+
+        if (error) throw error;
+        return NextResponse.json(data[0], { status: 201 });
+    } catch (error: any) {
         console.error('Error creating folder:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }

@@ -13,14 +13,93 @@ import {
     Activity
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { cmsService, Inquiry } from "@/services/api";
+import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
 
 export default function AdminDashboard() {
-    const stats = [
-        { label: "Tổng Dự án", value: "9", icon: Briefcase, color: "bg-blue-500", detail: "3 dự án mới tháng này" },
-        { label: "Dịch vụ", value: "2", icon: Wrench, color: "bg-purple-500", detail: "Sự kiện & Marketing" },
-        { label: "Tin nhắn mới", value: "24", icon: Mail, color: "bg-[#dafc69]", textColor: "text-black", detail: "5 yêu cầu chưa đọc" },
-        { label: "Đối tác", value: "12", icon: Users, color: "bg-gray-900", detail: "Hiển thị trên website" },
-    ];
+    const [stats, setStats] = useState([
+        { label: "Tổng Dự án", value: "...", icon: Briefcase, color: "bg-blue-500", detail: "Đang tải...", href: "/admin/cases" },
+        { label: "Dịch vụ", value: "...", icon: Wrench, color: "bg-purple-500", detail: "Đang tải...", href: "/admin/services" },
+        { label: "Tin nhắn mới", value: "...", icon: Mail, color: "bg-[#dafc69]", textColor: "text-black", detail: "Đang tải...", href: "/admin/inquiries" },
+        { label: "Lượt truy cập", value: "...", icon: Activity, color: "bg-orange-500", detail: "Đang tải...", href: "/admin/analytics" },
+    ]);
+    const [recentInquiries, setRecentInquiries] = useState<Inquiry[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [analytics, setAnalytics] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const [casesRes, servicesRes, inquiriesRes, partnersRes, analyticsRes] = await Promise.all([
+                    cmsService.getCases(),
+                    cmsService.getServices(),
+                    cmsService.getInquiries(),
+                    cmsService.getPartners(),
+                    cmsService.getAnalyticsStats()
+                ]);
+
+                const cases = casesRes.data;
+                const services = servicesRes.data;
+                const inquiries = inquiriesRes.data;
+                const partners = partnersRes.data;
+                const analyticsData = analyticsRes.data;
+                setAnalytics(analyticsData);
+
+                // Calculate stats
+                const now = new Date();
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                
+                const newCasesThisMonth = cases.filter(c => new Date(c.created_at) >= startOfMonth).length;
+                const unreadInquiries = inquiries.filter(i => i.status === 'pending' || i.status === 'new').length;
+
+                setStats([
+                    { 
+                        label: "Tổng Dự án", 
+                        value: cases.length.toString(), 
+                        icon: Briefcase, 
+                        color: "bg-blue-500", 
+                        detail: `${newCasesThisMonth} dự án mới tháng này`,
+                        href: "/admin/cases"
+                    },
+                    { 
+                        label: "Dịch vụ", 
+                        value: services.length.toString(), 
+                        icon: Wrench, 
+                        color: "bg-purple-500", 
+                        detail: services.length > 0 ? `${services[0].category}` : "Chưa có dịch vụ",
+                        href: "/admin/services"
+                    },
+                    { 
+                        label: "Tin nhắn", 
+                        value: inquiries.length.toString(), 
+                        icon: Mail, 
+                        color: "bg-[#dafc69]", 
+                        textColor: "text-black", 
+                        detail: `${unreadInquiries} tin chưa đọc`,
+                        href: "/admin/inquiries"
+                    },
+                    { 
+                        label: "Lượt truy cập", 
+                        value: analyticsData.totalVisits.toLocaleString(), 
+                        icon: Activity, 
+                        color: "bg-orange-500", 
+                        detail: `${analyticsData.uniqueToday} hôm nay`,
+                        href: "/admin/analytics"
+                    },
+                ]);
+
+                setRecentInquiries(inquiries.slice(0, 5));
+            } catch (error) {
+                console.error("Error fetching dashboard data:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
 
     return (
         <AdminLayout>
@@ -53,7 +132,7 @@ export default function AdminDashboard() {
                     {stats.map((stat, i) => (
                         <Link
                             key={i}
-                            href={i === 0 ? "/admin/cases" : i === 1 ? "/admin/services" : i === 3 ? "/admin/reviews" : "#"}
+                            href={stat.href}
                             className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-gray-100 hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 group"
                         >
                             <div className="flex items-center justify-between mb-6">
@@ -83,24 +162,28 @@ export default function AdminDashboard() {
                             <button className="text-sm font-bold text-blue-600 hover:underline">Xem tất cả</button>
                         </div>
                         <div className="divide-y divide-gray-50">
-                            {[
-                                { name: "Nguyễn Văn A", phone: "0912345678", project: "Marketing Strategy", time: "10 phút trước" },
-                                { name: "Growe Partners", phone: "0988776655", project: "Commercial Film", time: "2 giờ trước" },
-                                { name: "August Events", phone: "0900112233", project: "Fashion Show", time: "Hôm qua" },
-                            ].map((item, i) => (
-                                <div key={i} className="px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-all cursor-pointer group">
-                                    <div className="flex items-center gap-5">
-                                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[#dafc69] group-hover:text-black transition-colors">
-                                            {item.name.charAt(0)}
+                            {recentInquiries.length > 0 ? (
+                                recentInquiries.map((item, i) => (
+                                    <Link key={item.id} href={`/admin/inquiries?id=${item.id}`} className="px-8 py-6 flex items-center justify-between hover:bg-gray-50 transition-all cursor-pointer group">
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 font-bold group-hover:bg-[#dafc69] group-hover:text-black transition-colors">
+                                                {item.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-black text-gray-900 tracking-tight">{item.name}</h4>
+                                                <p className="text-xs text-gray-500 uppercase font-bold tracking-widest text-[9px]">{item.phone} • {item.project_type || 'N/A'}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 className="text-sm font-black text-gray-900 tracking-tight">{item.name}</h4>
-                                            <p className="text-xs text-gray-500">{item.phone} • {item.project}</p>
-                                        </div>
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase text-gray-400">{item.time}</span>
+                                        <span className="text-[10px] font-black uppercase text-gray-400">
+                                            {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: vi })}
+                                        </span>
+                                    </Link>
+                                ))
+                            ) : (
+                                <div className="px-8 py-10 text-center text-gray-400 italic text-sm">
+                                    {isLoading ? "Đang tải tin nhắn..." : "Chưa có tin nhắn nào"}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
 

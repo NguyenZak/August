@@ -23,10 +23,12 @@ import { motion, Reorder, AnimatePresence } from "framer-motion";
 import { cmsService, MediaItem } from "@/services/api";
 import RichTextEditor from "@/components/common/RichTextEditor";
 import MediaLibraryModal from "@/components/common/MediaLibraryModal";
+import { slugify } from "@/lib/utils";
 
 interface Case {
     id: string;
     title: string;
+    slug: string;
     category: string;
     image_url: string;
     grid_row: number;
@@ -54,6 +56,7 @@ export default function AdminCasesPage() {
     });
     const [formData, setFormData] = useState({
         title: "",
+        slug: "",
         category: "",
         image_url: "",
         grid_row: 1,
@@ -71,9 +74,9 @@ export default function AdminCasesPage() {
 
         setIsUploading(true);
         try {
-            const response = await cmsService.uploadFiles(files);
+            const response = await cmsService.uploadFile(files[0]);
             if (field === 'menu_url') {
-                const newUrls = response.data.map((res: any) => res.url).join(',');
+                const newUrls = (response.data as any).map((res: any) => res.url).join(',');
                 setFormData(prev => ({
                     ...prev,
                     [field]: prev[field] ? `${prev[field]},${newUrls}` : newUrls
@@ -115,6 +118,7 @@ export default function AdminCasesPage() {
             setEditingItem(item);
             setFormData({
                 title: item.title,
+                slug: item.slug || "",
                 category: item.category,
                 image_url: item.image_url,
                 grid_row: item.grid_row,
@@ -129,6 +133,7 @@ export default function AdminCasesPage() {
             setEditingItem(null);
             setFormData({
                 title: "",
+                slug: "",
                 category: "",
                 image_url: "",
                 grid_row: 1,
@@ -339,18 +344,40 @@ export default function AdminCasesPage() {
                                         </div>
 
                                         <div className="space-y-6">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 flex items-center gap-2">
-                                                    <Tag className="w-3 h-3" /> tên dự án
-                                                </label>
-                                                <input
-                                                    required
-                                                    type="text"
-                                                    value={formData.title}
-                                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] text-sm font-bold focus:ring-2 focus:ring-[#dafc69] outline-none transition-all"
-                                                    placeholder="Vd: Growe Partners"
-                                                />
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 flex items-center gap-2">
+                                                        <Tag className="w-3 h-3" /> tên dự án
+                                                    </label>
+                                                    <input
+                                                        required
+                                                        type="text"
+                                                        value={formData.title}
+                                                        onChange={(e) => {
+                                                            const newTitle = e.target.value;
+                                                            setFormData(prev => ({
+                                                                ...prev,
+                                                                title: newTitle,
+                                                                slug: editingItem ? prev.slug : slugify(newTitle)
+                                                            }));
+                                                        }}
+                                                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] text-sm font-bold focus:ring-2 focus:ring-[#dafc69] outline-none transition-all"
+                                                        placeholder="Vd: Growe Partners"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-1 flex items-center gap-2">
+                                                        <Search className="w-3 h-3" /> đường dẫn (slug)
+                                                    </label>
+                                                    <input
+                                                        required
+                                                        type="text"
+                                                        value={formData.slug}
+                                                        onChange={(e) => setFormData({ ...formData, slug: slugify(e.target.value) })}
+                                                        className="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] text-sm font-bold focus:ring-2 focus:ring-[#dafc69] outline-none transition-all"
+                                                        placeholder="vd: growe-partners"
+                                                    />
+                                                </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4">

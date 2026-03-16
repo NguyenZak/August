@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 import { authenticateJWT } from '@/lib/auth';
 
 export async function GET(req: NextRequest) {
@@ -7,11 +7,16 @@ export async function GET(req: NextRequest) {
     if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
     try {
-        const result = await query('SELECT * FROM inquiries ORDER BY created_at DESC');
-        return NextResponse.json(result.rows);
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('inquiries')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return NextResponse.json(data);
+    } catch (error: any) {
         console.error('Error fetching inquiries:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }
 
@@ -24,14 +29,26 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Name and phone are required' }, { status: 400 });
         }
 
-        const result = await query(
-            `INSERT INTO inquiries (name, email, phone, company, message, business_model, website, fanpage, project_type, status) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'new') RETURNING *`,
-            [name, email || null, phone, company || null, message || null, businessModel || null, website || null, fanpage || null, project_type || 'Branding']
-        );
-        return NextResponse.json(result.rows[0], { status: 201 });
-    } catch (error) {
+        const { data, error } = await supabase
+            .from('inquiries')
+            .insert([{
+                name,
+                email: email || null,
+                phone,
+                company: company || null,
+                message: message || null,
+                business_model: businessModel || null,
+                website: website || null,
+                fanpage: fanpage || null,
+                project_type: project_type || 'Branding',
+                status: 'new'
+            }])
+            .select();
+
+        if (error) throw error;
+        return NextResponse.json(data[0], { status: 201 });
+    } catch (error: any) {
         console.error('Error creating inquiry:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+        return NextResponse.json({ message: 'Internal server error', error: error.message }, { status: 500 });
     }
 }
