@@ -32,7 +32,8 @@ export default function AdminDashboard() {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [casesRes, servicesRes, inquiriesRes, partnersRes, analyticsRes] = await Promise.all([
+                // Use Promise.allSettled to handle partial failures
+                const results = await Promise.allSettled([
                     cmsService.getCases(),
                     cmsService.getServices(),
                     cmsService.getInquiries(),
@@ -40,12 +41,19 @@ export default function AdminDashboard() {
                     cmsService.getAnalyticsStats()
                 ]);
 
-                const cases = casesRes.data;
-                const services = servicesRes.data;
-                const inquiries = inquiriesRes.data;
-                const partners = partnersRes.data;
-                const analyticsData = analyticsRes.data;
+                const casesRes = results[0].status === 'fulfilled' ? results[0].value : null;
+                const servicesRes = results[1].status === 'fulfilled' ? results[1].value : null;
+                const inquiriesRes = results[2].status === 'fulfilled' ? results[2].value : null;
+                // const partnersRes = results[3].status === 'fulfilled' ? results[3].value : null;
+                const analyticsRes = results[4].status === 'fulfilled' ? results[4].value : null;
+
+                const cases = casesRes?.data || [];
+                const services = servicesRes?.data || [];
+                const inquiries = inquiriesRes?.data || [];
+                const analyticsData = analyticsRes?.data || { totalVisits: 0, uniqueToday: 0, deviceBreakdown: {}, topPaths: [] };
+                
                 setAnalytics(analyticsData);
+                setRecentInquiries(inquiries.slice(0, 5));
 
                 // Calculate stats
                 const now = new Date();
@@ -60,7 +68,7 @@ export default function AdminDashboard() {
                         value: cases.length.toString(), 
                         icon: Briefcase, 
                         color: "bg-blue-500", 
-                        detail: `${newCasesThisMonth} dự án mới tháng này`,
+                        detail: casesRes ? `${newCasesThisMonth} dự án mới tháng này` : "Lỗi tải dữ liệu",
                         href: "/admin/cases"
                     },
                     { 
@@ -68,7 +76,7 @@ export default function AdminDashboard() {
                         value: services.length.toString(), 
                         icon: Wrench, 
                         color: "bg-purple-500", 
-                        detail: services.length > 0 ? `${services[0].category}` : "Chưa có dịch vụ",
+                        detail: services.length > 0 ? (services[0].category || "Đã cập nhật") : "Chưa có dịch vụ",
                         href: "/admin/services"
                     },
                     { 
@@ -82,15 +90,17 @@ export default function AdminDashboard() {
                     },
                     { 
                         label: "Lượt truy cập", 
-                        value: analyticsData.totalVisits.toLocaleString(), 
+                        value: analyticsRes ? analyticsData.totalVisits.toLocaleString() : "Chưa sẵn sàng", 
                         icon: Activity, 
                         color: "bg-orange-500", 
-                        detail: `${analyticsData.uniqueToday} hôm nay`,
+                        detail: analyticsRes ? `${analyticsData.uniqueToday} hôm nay` : "Vui lòng kiểm tra database",
                         href: "/admin/analytics"
                     },
                 ]);
 
-                setRecentInquiries(inquiries.slice(0, 5));
+                if (results[4].status === 'rejected') {
+                    console.error("Analytics fetch failed:", results[4].reason);
+                }
             } catch (error) {
                 console.error("Error fetching dashboard data:", error);
             } finally {
@@ -159,7 +169,7 @@ export default function AdminDashboard() {
                                 <h2 className="text-xl font-black text-gray-900 lowercase tracking-tighter">tin nhắn gần đây</h2>
                                 <p className="text-xs text-gray-400 mt-1 uppercase font-bold tracking-widest">từ popup liên hệ</p>
                             </div>
-                            <button className="text-sm font-bold text-blue-600 hover:underline">Xem tất cả</button>
+                            <Link href="/admin/inquiries" className="text-sm font-bold text-blue-600 hover:underline">Xem tất cả</Link>
                         </div>
                         <div className="divide-y divide-gray-50">
                             {recentInquiries.length > 0 ? (

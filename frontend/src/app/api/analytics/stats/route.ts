@@ -9,15 +9,19 @@ export async function GET(req: NextRequest) {
         const startOfSevenDays = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
         // 1. Total visits
-        const { count: totalVisits } = await supabase
+        const { count: totalVisits, error: countError } = await supabase
             .from('visitor_logs')
             .select('*', { count: 'exact', head: true })
+        
+        if (countError) throw countError
 
         // 2. Unique visitors today (by ip_hash)
-        const { data: todayUnique } = await supabase
+        const { data: todayUnique, error: uniqueError } = await supabase
             .from('visitor_logs')
             .select('ip_hash')
             .gte('created_at', startOfDay)
+
+        if (uniqueError) throw uniqueError
         
         const uniqueTodayCount = new Set(todayUnique?.map(v => v.ip_hash)).size
 

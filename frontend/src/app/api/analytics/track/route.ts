@@ -31,8 +31,13 @@ export async function POST(req: NextRequest) {
         })
 
         if (error) {
-            console.error('Error logging visitor:', error)
-            return NextResponse.json({ error: error.message }, { status: 500 })
+            console.error('Supabase Analytics Insert Error:', error)
+            return NextResponse.json({ 
+                error: 'Database insert failed', 
+                message: error.message,
+                details: error.details,
+                hint: error.hint
+            }, { status: 500 })
         }
 
         return NextResponse.json({ success: true })
