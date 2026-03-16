@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { supabase } from '@/lib/supabase'
 
 export async function GET(req: NextRequest) {
     try {
-        const supabase = await createClient()
         const now = new Date()
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString()
         const startOfSevenDays = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()

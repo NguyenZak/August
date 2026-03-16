@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/utils/supabase/server'
+import { supabase } from '@/lib/supabase'
 import { userAgent } from 'next/server'
 import crypto from 'crypto'
 
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
         const dateStr = new Date().toISOString().split('T')[0]
         const ipHash = crypto.createHash('sha256').update(ip + dateStr).digest('hex')
 
-        const supabase = await createClient()
+        // Use the simpler client from @/lib/supabase to avoid cookie overhead in API routes
         
         const { error } = await supabase.from('visitor_logs').insert({
             ip_hash: ipHash,
