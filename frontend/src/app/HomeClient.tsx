@@ -159,40 +159,46 @@ export default function HomeClient() {
                     />
                   );
                 })()}
+                {/* Gradient Overlay for Readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-70 z-[5]" />
                 
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-                
-                <div className="max-w-[95%] mx-auto px-6 relative z-10 w-full h-full flex flex-col justify-end pb-32 font-suisse">
-                  <motion.div 
-                    initial={{ y: 50, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.8 }}
-                  >
-                    <p className="text-white text-6xl md:text-8xl font-serif italic mb-2 lowercase">{heroSlides[currentSlideIndex].title_1}</p>
-                    <p className="text-white text-6xl md:text-8xl font-serif italic ml-20 md:ml-40 lowercase">{heroSlides[currentSlideIndex].title_2}</p>
-                  </motion.div>
+                <div className="absolute inset-0 z-10 flex flex-col justify-end pb-32">
+                    <div className="max-w-[95%] mx-auto px-6 w-full font-suisse">
+                        <motion.div 
+                            initial={{ y: 50, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.5, duration: 0.8 }}
+                        >
+                            <p className="text-white text-6xl md:text-8xl font-serif italic mb-2">
+                                {heroSlides[currentSlideIndex].title_1 || "agency sự kiện"}
+                            </p>
+                            <p className="text-white text-6xl md:text-8xl font-serif italic ml-20 md:ml-40">
+                                {heroSlides[currentSlideIndex].title_2 || "& marketing"}
+                            </p>
+                        </motion.div>
 
-                  <div className="w-full flex justify-end mt-20 font-suisse">
-                    <div className="max-w-3xl text-right">
-                      <motion.h1 
-                        initial={{ y: 50, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.8, duration: 0.8 }}
-                        className="text-[12vw] md:text-[6vw] leading-[0.9] font-black text-white lowercase tracking-tighter select-none mb-10 whitespace-pre-line"
-                      >
-                        {heroSlides[currentSlideIndex].heading}
-                      </motion.h1>
-                      <motion.button
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 1.1, duration: 0.5 }}
-                        onClick={openContact}
-                        className="inline-block px-8 md:px-10 py-3 md:py-4 rounded-full border-2 font-black lowercase text-lg md:text-xl transition-all duration-300 bg-[#dafc69] text-black border-[#dafc69] hover:bg-transparent hover:text-[#dafc69]"
-                      >
-                        liên hệ ngay
-                      </motion.button>
+                        <div className="w-full flex justify-end mt-20 font-suisse">
+                            <div className="max-w-3xl text-right">
+                                <motion.h1 
+                                    initial={{ y: 50, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.8, duration: 0.8 }}
+                                    className="text-[12vw] md:text-[6vw] leading-[0.9] font-black text-white lowercase tracking-tighter select-none mb-10 whitespace-pre-line"
+                                >
+                                    {heroSlides[currentSlideIndex].heading}
+                                </motion.h1>
+                                <motion.button
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ delay: 1.1, duration: 0.5 }}
+                                    onClick={openContact}
+                                    className="inline-block px-8 md:px-10 py-3 md:py-4 rounded-full border-2 font-black lowercase text-lg md:text-xl transition-all duration-300 bg-[#dafc69] text-black border-[#dafc69] hover:bg-transparent hover:text-[#dafc69]"
+                                >
+                                    liên hệ ngay
+                                </motion.button>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 </div>
               </>
             ) : (
