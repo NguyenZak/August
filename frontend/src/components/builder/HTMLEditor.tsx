@@ -39,23 +39,32 @@ interface Version {
 export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEditorProps) {
     const [html, setHtml] = useState(initialHtml || '')
     const [saving, setSaving] = useState(false)
-    const [saved, setSaved] = useState(false)
+    const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
     const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
     const [showPreview, setShowPreview] = useState(true)
     const [showHistory, setShowHistory] = useState(false)
     const [isVisualMode, setIsVisualMode] = useState(false)
     const [versions, setVersions] = useState<Version[]>([])
     const [loadingVersions, setLoadingVersions] = useState(false)
+    const [lastHistorySnapshot, setLastHistorySnapshot] = useState<number>(Date.now())
+    
     const supabase = createClient()
     const router = useRouter()
     const iframeRef = React.useRef<HTMLIFrameElement>(null)
 
+    // Auto-save logic
     useEffect(() => {
+        if (html === initialHtml && saveStatus === 'saved') return
+
+        const delay = 2000 // 2 seconds delay
+        setSaveStatus('unsaved')
+        
         const timeout = setTimeout(() => {
-            if (saved) setSaved(false)
-        }, 3000)
+            handleSave()
+        }, delay)
+
         return () => clearTimeout(timeout)
-    }, [saved])
+    }, [html])
 
     useEffect(() => {
         if (showHistory) {
@@ -105,7 +114,7 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
             doc.head.appendChild(style)
         }
 
-        // Make elements containing text editable (simpler than making whole body editable)
+        // Make elements containing text editable
         const textElements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, button, li, b, i, strong, em, small')
         textElements.forEach(el => {
             (el as HTMLElement).contentEditable = "true"
@@ -155,8 +164,9 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
         setLoadingVersions(false)
     }
 
-    const handleSave = async () => {
+    const handleSave = async (forceSnapshot = false) => {
         setSaving(true)
+        setSaveStatus('saving')
         
         // 1. Update brand content
         const { error: updateError } = await supabase
@@ -165,32 +175,39 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
             .eq('id', brandId)
 
         if (updateError) {
-            alert('Lỗi khi lưu: ' + updateError.message)
+            console.error('Lỗi khi lưu:', updateError.message)
+            setSaveStatus('unsaved')
             setSaving(false)
             return
         }
 
-        // 2. Add to history
-        const { error: historyError } = await supabase
-            .from('brand_history')
-            .insert({
-                brand_id: brandId,
-                html_content: html
-            })
+        // 2. Add to history ONLY if more than 5 minutes since last snapshot or forced
+        const fiveMinutes = 5 * 60 * 1000
+        const now = Date.now()
+        
+        if (forceSnapshot || (now - lastHistorySnapshot > fiveMinutes)) {
+            const { error: historyError } = await supabase
+                .from('brand_history')
+                .insert({
+                    brand_id: brandId,
+                    html_content: html
+                })
 
-        if (historyError) {
-            console.error('History Error:', historyError)
+            if (!historyError) {
+                setLastHistorySnapshot(now)
+                if (showHistory) fetchVersions()
+            }
         }
 
         setSaving(false)
-        setSaved(true)
-        if (showHistory) fetchVersions()
+        setSaveStatus('saved')
     }
 
     const restoreVersion = (versionHtml: string) => {
         if (confirm('Bạn có chắc chắn muốn khôi phục về phiên bản này? Mọi thay đổi hiện tại chưa lưu sẽ bị mất.')) {
             setHtml(versionHtml)
             setShowHistory(false)
+            setSaveStatus('unsaved')
         }
     }
 
@@ -225,6 +242,26 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                 </div>
 
                 <div className="flex items-center gap-2">
+                    {/* Save Status Indicator */}
+                    <div className="flex items-center gap-2 mr-4 px-4 py-2 bg-white/5 rounded-full border border-white/5">
+                        {saveStatus === 'saving' ? (
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#dafc69]">
+                                <div className="w-2 h-2 bg-[#dafc69] rounded-full animate-pulse" />
+                                <span>đang lưu...</span>
+                            </div>
+                        ) : saveStatus === 'saved' ? (
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                <Check size={12} className="text-[#dafc69]" />
+                                <span>đã lưu vào đám mây</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-500">
+                                <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                                <span>có thay đổi chưa lưu</span>
+                            </div>
+                        )}
+                    </div>
+
                     <div className="flex items-center bg-white/5 rounded-full p-1 mr-4">
                         <button 
                             onClick={() => setViewport('desktop')}
@@ -274,17 +311,12 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                     </button>
 
                     <button 
-                        onClick={handleSave}
-                        disabled={saving}
-                        className={`px-6 py-2 rounded-full text-xs font-black lowercase transition-all flex items-center gap-2 ${saved ? 'bg-[#dafc69] text-black' : 'bg-white text-black hover:bg-[#dafc69]'}`}
+                        onClick={() => handleSave(true)}
+                        disabled={saving || saveStatus === 'saved'}
+                        className={`px-6 py-2 rounded-full text-xs font-black lowercase transition-all flex items-center gap-2 ${saveStatus === 'saved' ? 'bg-white/5 text-gray-500 cursor-not-allowed' : 'bg-white text-black hover:bg-[#dafc69]'}`}
                     >
-                        {saving ? (
-                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                        ) : saved ? (
-                            <><Check size={14} /> <span>đã lưu</span></>
-                        ) : (
-                            <><Save size={14} /> <span>lưu thay đổi</span></>
-                        )}
+                        <Save size={14} />
+                        <span>xuất bản</span>
                     </button>
                 </div>
             </header>
