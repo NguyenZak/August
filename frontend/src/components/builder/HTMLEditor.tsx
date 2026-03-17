@@ -43,10 +43,12 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
     const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
     const [showPreview, setShowPreview] = useState(true)
     const [showHistory, setShowHistory] = useState(false)
+    const [isVisualMode, setIsVisualMode] = useState(false)
     const [versions, setVersions] = useState<Version[]>([])
     const [loadingVersions, setLoadingVersions] = useState(false)
     const supabase = createClient()
     const router = useRouter()
+    const iframeRef = React.useRef<HTMLIFrameElement>(null)
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -60,6 +62,81 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
             fetchVersions()
         }
     }, [showHistory])
+
+    // Handle messages from the iframe (visual editing)
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data.type === 'HTML_UPDATE') {
+                // Remove the injected markers before saving back to state
+                let newHtml = event.data.html
+                newHtml = newHtml.replace(/<style id="visual-editing-style">[\s\S]*?<\/style>/, '')
+                newHtml = newHtml.replace(/\scontenteditable="true"/g, '')
+                setHtml(newHtml)
+            }
+        }
+        window.addEventListener('message', handleMessage)
+        return () => window.removeEventListener('message', handleMessage)
+    }, [])
+
+    // Inject visual editing script when iframe loads or visual mode toggles
+    const handleIframeLoad = () => {
+        if (!isVisualMode || !iframeRef.current) return
+
+        const iframe = iframeRef.current
+        const doc = iframe.contentDocument || iframe.contentWindow?.document
+        if (!doc) return
+
+        // Inject styles
+        if (!doc.getElementById('visual-editing-style')) {
+            const style = doc.createElement('style')
+            style.id = 'visual-editing-style'
+            style.innerHTML = `
+                [contenteditable="true"]:hover {
+                    outline: 2px dashed #dafc69 !important;
+                    outline-offset: 4px;
+                    cursor: text;
+                }
+                [contenteditable="true"]:focus {
+                    outline: 2px solid #dafc69 !important;
+                    outline-offset: 4px;
+                    cursor: text;
+                }
+            `
+            doc.head.appendChild(style)
+        }
+
+        // Make elements containing text editable (simpler than making whole body editable)
+        const textElements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, a, button, li, b, i, strong, em, small')
+        textElements.forEach(el => {
+            (el as HTMLElement).contentEditable = "true"
+        })
+
+        // Listen for input
+        doc.body.addEventListener('input', () => {
+            window.parent.postMessage({
+                type: 'HTML_UPDATE',
+                html: doc.documentElement.outerHTML
+            }, '*')
+        }, true)
+    }
+
+    // Effect to toggle visual mode on existing iframe
+    useEffect(() => {
+        if (iframeRef.current) {
+            handleIframeLoad()
+            if (!isVisualMode) {
+                const doc = iframeRef.current.contentDocument || iframeRef.current.contentWindow?.document
+                if (doc) {
+                    const style = doc.getElementById('visual-editing-style')
+                    if (style) style.remove()
+                    const editableElements = doc.querySelectorAll('[contenteditable="true"]')
+                    editableElements.forEach(el => {
+                        (el as HTMLElement).contentEditable = "false"
+                    })
+                }
+            }
+        }
+    }, [isVisualMode])
 
     const fetchVersions = async () => {
         setLoadingVersions(true)
@@ -103,7 +180,6 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
 
         if (historyError) {
             console.error('History Error:', historyError)
-            // Still mark as saved for the main content, but warn about history
         }
 
         setSaving(false)
@@ -153,22 +229,33 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                         <button 
                             onClick={() => setViewport('desktop')}
                             className={`p-2 rounded-full transition-all ${viewport === 'desktop' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                            title="Máy tính"
                         >
                             <Monitor size={16} />
                         </button>
                         <button 
                             onClick={() => setViewport('tablet')}
                             className={`p-2 rounded-full transition-all ${viewport === 'tablet' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                            title="Máy tính bảng"
                         >
                             <Tablet size={16} />
                         </button>
                         <button 
                             onClick={() => setViewport('mobile')}
                             className={`p-2 rounded-full transition-all ${viewport === 'mobile' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}
+                            title="Điện thoại"
                         >
                             <Smartphone size={16} />
                         </button>
                     </div>
+
+                    <button 
+                        onClick={() => setIsVisualMode(!isVisualMode)}
+                        className={`px-4 py-2 border border-white/10 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${isVisualMode ? 'bg-[#dafc69] text-black border-[#dafc69]' : 'hover:bg-white/5'}`}
+                    >
+                        <Eye size={14} />
+                        <span>sửa trực tiếp</span>
+                    </button>
 
                     <button 
                         onClick={() => setShowHistory(!showHistory)}
@@ -229,7 +316,13 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
 
                 {/* Right Side: Preview */}
                 {showPreview && (
-                    <div className="flex-1 bg-[#1A1A1A] flex items-center justify-center p-8 overflow-auto">
+                    <div className="flex-1 bg-[#1A1A1A] flex items-center justify-center p-8 overflow-auto relative">
+                        {isVisualMode && (
+                            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-[#dafc69] text-black px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-2xl">
+                                <AlertCircle size={12} />
+                                chế độ sửa trực tiếp đang bật
+                            </div>
+                        )}
                         <div 
                             className={`bg-white shadow-2xl transition-all duration-500 overflow-hidden relative ${
                                 viewport === 'desktop' ? 'w-full h-full' : 
@@ -239,9 +332,11 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                         >
                             {html ? (
                                 <iframe
+                                    ref={iframeRef}
                                     srcDoc={html}
                                     title="Preview"
                                     className="w-full h-full border-none"
+                                    onLoad={handleIframeLoad}
                                 />
                             ) : (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-300 space-y-4">
