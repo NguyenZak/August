@@ -6,7 +6,7 @@ export async function middleware(request: NextRequest) {
     const hostname = request.headers.get('host') || ''
 
     // Define allowed domains (including localhost for development)
-    const allowedDomains = ['fbtoolzz.com', 'localhost:3000']
+    const allowedDomains = ['fbtoolzz.com', 'augustevents.co.uk', 'localhost:3000']
 
     // Check if current hostname is a subdomain
     const isSubdomain = allowedDomains.some(domain =>

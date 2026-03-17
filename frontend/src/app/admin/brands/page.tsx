@@ -70,7 +70,7 @@ export default async function BrandPage() {
                                         <Settings2 size={18} />
                                     </Link>
                                     <a
-                                        href={`http://${brand.subdomain}.localhost:3000`}
+                                        href={`http://${brand.subdomain}.augustevents.co.uk`}
                                         target="_blank"
                                         className="p-4 bg-gray-50 text-gray-400 rounded-2xl hover:bg-black hover:text-[#dafc69] transition-all"
                                     >
