@@ -124,7 +124,7 @@ export default function NewBrandPage() {
                                                 className="flex-1 px-6 py-4 bg-transparent border-none outline-none font-bold text-sm placeholder:text-gray-300"
                                             />
                                             <span className="pr-6 text-gray-300 text-[10px] font-black uppercase tracking-widest">
-                                                .augustevents.co.uk
+                                                .viz.io.vn
                                             </span>
                                         </div>
                                     </div>

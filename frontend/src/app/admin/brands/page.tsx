@@ -51,31 +51,31 @@ export default async function BrandPage() {
                             </div>
                             <div className="p-8">
                                 <h3 className="text-xl font-black text-gray-900 tracking-tighter mb-1 lowercase">{brand.name}</h3>
-                                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 tracking-widest mb-6">
-                                    <Globe className="w-3 h-3" />
-                                    {brand.subdomain}.augustevents.co.uk
-                                </div>
+                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 tracking-widest mb-6">
+                                        <Globe className="w-3 h-3" />
+                                        {brand.subdomain}.viz.io.vn
+                                    </div>
 
-                                <div className="flex gap-3">
-                                    <Link
-                                        href={`/admin/brands/${brand.id}/edit`}
-                                        className="flex-1 text-center py-4 px-4 bg-[#dafc69] text-black rounded-2xl text-xs font-black lowercase hover:scale-105 transition-transform shadow-lg shadow-lime-400/10"
-                                    >
-                                        nhập mã HTML
-                                    </Link>
-                                    <Link
-                                        href={`/admin/brands/${brand.id}`}
-                                        className="p-4 bg-gray-50 text-gray-400 rounded-2xl hover:bg-black hover:text-[#dafc69] transition-all"
-                                    >
-                                        <Settings2 size={18} />
-                                    </Link>
-                                    <a
-                                        href={`http://${brand.subdomain}.augustevents.co.uk`}
-                                        target="_blank"
-                                        className="p-4 bg-gray-50 text-gray-400 rounded-2xl hover:bg-black hover:text-[#dafc69] transition-all"
-                                    >
-                                        <Eye size={18} />
-                                    </a>
+                                    <div className="flex gap-3">
+                                        <Link
+                                            href={`/admin/brands/${brand.id}/edit`}
+                                            className="flex-1 text-center py-4 px-4 bg-[#dafc69] text-black rounded-2xl text-xs font-black lowercase hover:scale-105 transition-transform shadow-lg shadow-lime-400/10"
+                                        >
+                                            nhập mã HTML
+                                        </Link>
+                                        <Link
+                                            href={`/admin/brands/${brand.id}`}
+                                            className="p-4 bg-gray-50 text-gray-400 rounded-2xl hover:bg-black hover:text-[#dafc69] transition-all"
+                                        >
+                                            <Settings2 size={18} />
+                                        </Link>
+                                        <a
+                                            href={`http://${brand.subdomain}.viz.io.vn`}
+                                            target="_blank"
+                                            className="p-4 bg-gray-50 text-gray-400 rounded-2xl hover:bg-black hover:text-[#dafc69] transition-all"
+                                        >
+                                            <Eye size={18} />
+                                        </a>
                                 </div>
                             </div>
                         </div>

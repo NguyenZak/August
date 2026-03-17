@@ -209,7 +209,7 @@ export default function BrandSettingsClient({ brand }: BrandSettingsClientProps)
                             <span>mở trình soạn thảo HTML</span>
                         </Link>
                         <a
-                            href={`http://${brand.subdomain}.augustevents.co.uk`}
+                            href={`http://${brand.subdomain}.viz.io.vn`}
                             target="_blank"
                             className="w-full flex items-center justify-center gap-3 py-6 px-4 bg-gray-50 text-gray-400 rounded-[2rem] font-black text-sm lowercase hover:text-black transition-all"
                         >
