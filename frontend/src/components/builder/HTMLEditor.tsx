@@ -13,15 +13,27 @@ import {
     Check,
     AlertCircle,
     Maximize2,
-    Download
+    Download,
+    History,
+    ChevronRight,
+    RotateCcw,
+    X as CloseIcon
 } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import { formatDistanceToNow } from 'date-fns'
+import { vi } from 'date-fns/locale'
 
 interface HTMLEditorProps {
     brandId: string
     brandName: string
     initialHtml: string
+}
+
+interface Version {
+    id: string
+    html_content: string
+    created_at: string
 }
 
 export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEditorProps) {
@@ -30,6 +42,9 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
     const [saved, setSaved] = useState(false)
     const [viewport, setViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
     const [showPreview, setShowPreview] = useState(true)
+    const [showHistory, setShowHistory] = useState(false)
+    const [versions, setVersions] = useState<Version[]>([])
+    const [loadingVersions, setLoadingVersions] = useState(false)
     const supabase = createClient()
     const router = useRouter()
 
@@ -40,18 +55,66 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
         return () => clearTimeout(timeout)
     }, [saved])
 
+    useEffect(() => {
+        if (showHistory) {
+            fetchVersions()
+        }
+    }, [showHistory])
+
+    const fetchVersions = async () => {
+        setLoadingVersions(true)
+        const { data, error } = await supabase
+            .from('brand_history')
+            .select('*')
+            .eq('brand_id', brandId)
+            .order('created_at', { ascending: false })
+            .limit(20)
+
+        if (error) {
+            console.error('Error fetching versions:', error)
+        } else {
+            setVersions(data || [])
+        }
+        setLoadingVersions(false)
+    }
+
     const handleSave = async () => {
         setSaving(true)
-        const { error } = await supabase
+        
+        // 1. Update brand content
+        const { error: updateError } = await supabase
             .from('brands')
             .update({ html_content: html })
             .eq('id', brandId)
 
+        if (updateError) {
+            alert('Lỗi khi lưu: ' + updateError.message)
+            setSaving(false)
+            return
+        }
+
+        // 2. Add to history
+        const { error: historyError } = await supabase
+            .from('brand_history')
+            .insert({
+                brand_id: brandId,
+                html_content: html
+            })
+
+        if (historyError) {
+            console.error('History Error:', historyError)
+            // Still mark as saved for the main content, but warn about history
+        }
+
         setSaving(false)
-        if (error) {
-            alert('Lỗi khi lưu: ' + error.message)
-        } else {
-            setSaved(true)
+        setSaved(true)
+        if (showHistory) fetchVersions()
+    }
+
+    const restoreVersion = (versionHtml: string) => {
+        if (confirm('Bạn có chắc chắn muốn khôi phục về phiên bản này? Mọi thay đổi hiện tại chưa lưu sẽ bị mất.')) {
+            setHtml(versionHtml)
+            setShowHistory(false)
         }
     }
 
@@ -108,6 +171,14 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                     </div>
 
                     <button 
+                        onClick={() => setShowHistory(!showHistory)}
+                        className={`px-4 py-2 border border-white/10 rounded-full text-xs font-bold transition-all flex items-center gap-2 ${showHistory ? 'bg-[#dafc69] text-black border-[#dafc69]' : 'hover:bg-white/5'}`}
+                    >
+                        <History size={14} />
+                        <span>lịch sử</span>
+                    </button>
+
+                    <button 
                         onClick={downloadHtml}
                         className="px-4 py-2 border border-white/10 rounded-full text-xs font-bold hover:bg-white/5 transition-all flex items-center gap-2"
                     >
@@ -132,7 +203,7 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
             </header>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex overflow-hidden">
+            <main className="flex-1 flex overflow-hidden relative">
                 {/* Left Side: Code Editor */}
                 <div className={`flex-1 flex flex-col border-r border-white/10 ${!showPreview ? 'w-full' : 'max-w-[50%]'}`}>
                     <div className="h-10 px-4 flex items-center justify-between bg-white/5 border-b border-white/10">
@@ -178,6 +249,57 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                                         <Eye className="text-gray-200" size={32} />
                                     </div>
                                     <p className="text-sm font-bold lowercase">nhập mã html để xem trước</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* History Sidebar Overlay */}
+                {showHistory && (
+                    <div className="absolute top-0 right-0 w-80 h-full bg-[#161616] border-l border-white/10 z-50 flex flex-col animate-in slide-in-from-right duration-300 shadow-2xl">
+                        <div className="h-14 px-6 flex items-center justify-between border-b border-white/10">
+                            <h2 className="text-xs font-black uppercase tracking-[0.2em]">Lịch sử chỉnh sửa</h2>
+                            <button 
+                                onClick={() => setShowHistory(false)}
+                                className="p-2 hover:bg-white/5 rounded-full"
+                            >
+                                <CloseIcon size={16} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-auto custom-scrollbar p-4 space-y-2">
+                            {loadingVersions ? (
+                                <div className="flex flex-col items-center py-20 gap-4 opacity-50">
+                                    <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <p className="text-[10px] uppercase font-black tracking-widest">đang tải...</p>
+                                </div>
+                            ) : versions.length > 0 ? (
+                                versions.map((version) => (
+                                    <div 
+                                        key={version.id}
+                                        className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-[#dafc69]/30 transition-all group"
+                                    >
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                                                {formatDistanceToNow(new Date(version.created_at), { addSuffix: true, locale: vi })}
+                                            </span>
+                                            <button 
+                                                onClick={() => restoreVersion(version.html_content)}
+                                                className="p-2 bg-white/5 hover:bg-[#dafc69] hover:text-black rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                                title="Khôi phục"
+                                            >
+                                                <RotateCcw size={14} />
+                                            </button>
+                                        </div>
+                                        <div className="text-[10px] text-gray-500 font-mono truncate opacity-50">
+                                            {version.html_content.substring(0, 100).replace(/\s+/g, ' ')}...
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="flex flex-col items-center py-32 opacity-30">
+                                    <History size={40} className="mb-4" />
+                                    <p className="text-[10px] uppercase font-black tracking-widest">chưa có lịch sử</p>
                                 </div>
                             )}
                         </div>
