@@ -17,6 +17,7 @@ export default function NewBrandPage() {
     
     const [name, setName] = useState('')
     const [subdomain, setSubdomain] = useState('')
+    const [htmlContent, setHtmlContent] = useState('')
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
@@ -32,6 +33,7 @@ export default function NewBrandPage() {
             primary_color: formData.get('primary_color') as string,
             contact_email: formData.get('contact_email') as string,
             contact_phone: formData.get('contact_phone') as string,
+            html_content: formData.get('html_content') as string,
         }
 
         // Use context user for validation
@@ -78,7 +80,7 @@ export default function NewBrandPage() {
                         <span className="text-xs font-black uppercase tracking-widest">quay lại</span>
                     </button>
                     <div>
-                        <h1 className="text-3xl font-black lowercase tracking-tighter text-right">tạo thương hiệu mới</h1>
+                        <h1 className="text-3xl font-black lowercase tracking-tighter text-right">tạo landing page mới</h1>
                         <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">bắt đầu xây dựng landing page của bạn</p>
                     </div>
                 </div>
@@ -107,7 +109,7 @@ export default function NewBrandPage() {
                                                 setName(newName);
                                                 setSubdomain(slugify(newName));
                                             }}
-                                            placeholder="Tên thương hiệu (vd: August Agency)"
+                                            placeholder="Tên landing page (vd: August Agency)"
                                             className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all"
                                         />
                                     </div>
@@ -144,6 +146,21 @@ export default function NewBrandPage() {
                                         className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-bold text-sm placeholder:text-gray-300 transition-all resize-none"
                                     />
                                 </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-10 rounded-[2.5rem] border border-gray-100 shadow-sm space-y-8">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 ml-2 italic">Tùy chọn: Import HTML</label>
+                                <textarea
+                                    name="html_content"
+                                    value={htmlContent}
+                                    onChange={(e) => setHtmlContent(e.target.value)}
+                                    rows={10}
+                                    placeholder="Dán mã HTML của bạn vào đây nếu bạn đã có sẵn nội dung trang..."
+                                    className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-mono text-xs placeholder:text-gray-300 transition-all resize-none"
+                                />
+                                <p className="text-[9px] text-gray-400 px-2 italic">Nếu có nội dung HTML, hệ thống sẽ ưu tiên hiển thị mã này thay vì giao diện AI mặc định.</p>
                             </div>
                         </div>
 
@@ -198,7 +215,7 @@ export default function NewBrandPage() {
                                 ) : (
                                     <>
                                         <Sparkles size={18} />
-                                        <span>tạo thương hiệu</span>
+                                        <span>tạo landing page</span>
                                     </>
                                 )}
                             </button>

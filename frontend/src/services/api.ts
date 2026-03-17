@@ -99,6 +99,7 @@ export const cmsService = {
 
     // Services
     getServices: () => api.get<Service[]>('/services'),
+    getServiceBySlug: (slug: string) => api.get<Service>(`/services/${slug}`),
     createService: (data: Partial<Service>) => api.post('/services', data),
     updateService: (id: string, data: Partial<Service>) => api.put(`/services/${id}`, data),
     deleteService: (id: string) => api.delete(`/services/${id}`),

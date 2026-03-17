@@ -25,7 +25,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     try {
         const { id } = await params;
         const body = await req.json();
-        const { title, slug: providedSlug, description, category, icon, image_url } = body;
+        const { title, slug: providedSlug, description, content, category, icon, image_url } = body;
 
         let slug = providedSlug;
         if (slug) {
@@ -38,6 +38,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
                 title,
                 ...(slug && { slug }),
                 description,
+                content,
                 category,
                 icon,
                 image_url,

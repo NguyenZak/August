@@ -80,7 +80,7 @@ export default function PlaybackPage() {
                 <div className="max-w-[1400px] mx-auto px-6 pt-12 pb-8">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                         <div>
-                            <h1 className="text-4xl font-black tracking-tight mb-2">Your apps</h1>
+                            <h1 className="text-4xl font-black tracking-tight mb-2">Landing Pages</h1>
                             <p className="text-slate-500 dark:text-slate-400 font-medium lowercase">Quản lý và tối ưu hóa các trang landing page của bạn.</p>
                         </div>
                         <Link
@@ -88,7 +88,7 @@ export default function PlaybackPage() {
                             className="inline-flex items-center gap-2 bg-[#1A73E8] hover:bg-[#1557B0] text-white px-6 py-3 rounded-full font-bold transition-all shadow-lg hover:shadow-xl active:scale-95"
                         >
                             <Plus className="w-5 h-5" />
-                            <span>Create app</span>
+                            <span>Create landing page</span>
                         </Link>
                     </div>
 
@@ -98,7 +98,7 @@ export default function PlaybackPage() {
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input
                                 type="text"
-                                placeholder="Search apps..."
+                                placeholder="Search landing pages..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/10 rounded-xl pl-12 pr-4 py-3 outline-none focus:ring-2 focus:ring-[#1A73E8] transition-all"
@@ -132,13 +132,13 @@ export default function PlaybackPage() {
                             <div className="w-20 h-20 bg-slate-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Layout className="w-10 h-10 text-slate-300" />
                             </div>
-                            <h3 className="text-xl font-bold mb-2">Chưa có ứng dụng nào</h3>
-                            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Bắt đầu bằng cách tạo landing page đầu tiên của bạn bằng AI.</p>
+                            <h3 className="text-xl font-bold mb-2">Chưa có landing page nào</h3>
+                            <p className="text-slate-500 mb-8 max-w-sm mx-auto">Bắt đầu bằng cách tạo landing page đầu tiên của bạn.</p>
                             <Link
                                 href="/admin/brands/new"
                                 className="inline-flex items-center gap-2 text-[#1A73E8] font-bold hover:underline"
                             >
-                                Create your first app <ArrowRight className="w-4 h-4" />
+                                Create your first landing page <ArrowRight className="w-4 h-4" />
                             </Link>
                         </div>
                     ) : viewMode === 'grid' ? (
@@ -189,7 +189,7 @@ export default function PlaybackPage() {
                                                         onClick={() => handleDelete(brand.id)}
                                                         className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 text-sm font-bold transition-colors"
                                                     >
-                                                        <Trash2 className="w-4 h-4" /> Delete app
+                                                        <Trash2 className="w-4 h-4" /> Delete landing page
                                                     </button>
                                                 </div>
                                             </div>
@@ -207,7 +207,7 @@ export default function PlaybackPage() {
                             <table className="w-full text-left">
                                 <thead className="border-b border-slate-200 dark:border-white/10 text-xs font-black uppercase tracking-widest text-slate-400">
                                     <tr>
-                                        <th className="px-6 py-4">App Name</th>
+                                        <th className="px-6 py-4">Page Name</th>
                                         <th className="px-6 py-4">Subdomain</th>
                                         <th className="px-6 py-4">Modified</th>
                                         <th className="px-6 py-4 text-right">Actions</th>

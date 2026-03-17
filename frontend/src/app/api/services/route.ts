@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { title, slug: providedSlug, description, category, icon, image_url } = body;
+        const { title, slug: providedSlug, description, content, category, icon, image_url } = body;
 
         if (!title || !category) {
             return NextResponse.json({ message: 'Title and category are required' }, { status: 400 });
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
 
         const { data, error } = await supabase
             .from('services')
-            .insert([{ title, slug, description, category, icon, image_url }])
+            .insert([{ title, slug, description, content, category, icon, image_url }])
             .select();
 
         if (error) throw error;

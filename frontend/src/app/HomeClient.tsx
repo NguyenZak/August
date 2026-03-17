@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Mail, Instagram, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight, Mail, Instagram, Info, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import PublicNavbar from "@/components/layout/PublicNavbar";
 import { useContact } from "@/context/ContactContext";
 import { cmsService, HeroSlide } from "@/services/api";
@@ -25,6 +25,7 @@ export default function HomeClient() {
   const [heroSlides, setHeroSlides] = useState<HeroSlide[]>([]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { openContact } = useContact();
 
   useEffect(() => {
@@ -61,6 +62,8 @@ export default function HomeClient() {
         setIsLoading(false);
       }
     };
+
+    setMounted(true);
     fetchData();
   }, []);
 
@@ -162,8 +165,8 @@ export default function HomeClient() {
                 {/* Gradient Overlay for Readability */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-70 z-[5]" />
                 
-                <div className="absolute inset-0 z-10 flex flex-col justify-end pb-32">
-                    <div className="max-w-[95%] mx-auto px-6 w-full font-suisse">
+                <div className="absolute inset-0 z-10 flex flex-col pt-40 pb-32">
+                    <div className="max-w-[95%] mx-auto px-6 w-full h-full flex flex-col justify-between font-suisse">
                         <motion.div 
                             initial={{ y: 50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
@@ -214,7 +217,7 @@ export default function HomeClient() {
                     );
                 })()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-                <div className="max-w-[95%] mx-auto px-6 relative z-10 w-full h-full flex flex-col justify-end pb-32 font-suisse">
+                <div className="max-w-[95%] mx-auto px-6 relative z-10 w-full h-full flex flex-col justify-between pt-40 pb-32 font-suisse">
                     <div>
                         <p className="text-white text-6xl md:text-8xl font-serif italic mb-2">{settings.hero_title_1 || "agency sự kiện"}</p>
                         <p className="text-white text-6xl md:text-8xl font-serif italic ml-20 md:ml-40">{settings.hero_title_2 || "& marketing"}</p>
@@ -499,7 +502,7 @@ export default function HomeClient() {
                 <p className="flex items-center justify-end gap-3 text-xl"><Mail className="w-5 h-5" /> {settings.contact_email || "sophie.w@augustevents.co.uk"}</p>
                 <p className="flex items-center justify-end gap-3 text-xl"><Instagram className="w-5 h-5" /> {settings.contact_instagram || "augustevents.co.uk"}</p>
               </div>
-              <div className="mt-12 text-gray-500 font-medium">© {new Date().getFullYear()} August Events</div>
+              <div className="mt-12 text-gray-500 font-medium">© {mounted ? new Date().getFullYear() : '2025'} August Events</div>
             </div>
           </div>
         </div>

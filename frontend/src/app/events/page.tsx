@@ -86,28 +86,53 @@ export default function EventsPage() {
             {/* Services Grid */}
             <section className="py-20 md:py-40 bg-black">
                 <div className="max-w-[95%] mx-auto px-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
                         {isLoading ? (
                             <div className="col-span-full flex justify-center py-20 text-[#dafc69]">
                                 <div className="w-12 h-12 border-4 border-current border-t-transparent rounded-full animate-spin" />
                             </div>
-                        ) : services.length > 0 ? (
-                            services.map((service, idx) => (
-                                <div key={service.id} className={`bg-white text-black p-10 md:p-16 rounded-[2.5rem] flex flex-col justify-between min-h-[500px] animate-on-scroll ${idx > 0 ? `delay-${idx * 100}` : ''}`}>
-                                    <div>
-                                        <h3 className="text-5xl md:text-6xl font-black lowercase leading-[0.9] tracking-tighter mb-12">
-                                            {service.title}
-                                        </h3>
-                                        <Plus className="w-16 h-16 text-black opacity-20" />
-                                    </div>
-                                    <p className="text-xl font-medium text-gray-800 leading-tight lowercase">
-                                        {service.description}
-                                    </p>
+                        ) : (services.length > 0 ? services : [
+                            { id: 'sample-e1', title: 'entertainment parties', description: 'Experience the most immersive brand parties with custom themes and VIP treatment.', image_url: '/assets/august/about_center_1.jpg' },
+                            { id: 'sample-e2', title: 'grand opening', description: 'Make a lasting impression with a spectacular launch event for your new location.', image_url: '/assets/august/photo.jpg' },
+                            { id: 'sample-e3', title: 'corporate gala', description: 'Elegant and professional galas tailored to celebrate your company\'s milestones.', image_url: '/assets/august/about_right.jpg' }
+                        ] as any[]).map((service, idx) => (
+                            <Link 
+                                key={service.id} 
+                                href={service.slug ? `/services/${service.slug}` : '#'}
+                                className="bg-white text-black p-8 md:p-10 aspect-[3/4] rounded-[2rem] border border-black/10 flex flex-col justify-between overflow-hidden relative group animate-on-scroll"
+                            >
+                                {/* Background Image Reveal on Hover */}
+                                <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
+                                    <img 
+                                        src={service.image_url || "/assets/august/our_services_events_.jpg"} 
+                                        className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-1000" 
+                                        alt={service.title} 
+                                    />
+                                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
                                 </div>
-                            ))
-                        ) : (
-                            <p className="col-span-full text-center text-white/40 italic lowercase">chưa có dịch vụ nào.</p>
-                        )}
+
+                                {/* Content Container */}
+                                <div className="relative z-10 h-full flex flex-col justify-between group-hover:text-white transition-colors duration-500">
+                                    <div>
+                                        <h3 className="text-4xl md:text-5xl font-bold lowercase tracking-tighter leading-[0.9] max-w-[80%]">
+                                            {(service.title as string).split(' ').map((word, i) => (
+                                                <span key={i} className="block">{word}</span>
+                                            ))}
+                                        </h3>
+                                    </div>
+
+                                    <div className="flex justify-center items-center">
+                                        <Plus className="w-20 h-20 text-black group-hover:text-white group-hover:rotate-90 transition-all duration-500" strokeWidth={0.5} />
+                                    </div>
+
+                                    <div className="max-w-[90%]">
+                                        <p className="text-sm font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                                            {service.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
                     </div>
                 </div>
             </section>

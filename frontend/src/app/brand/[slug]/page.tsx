@@ -24,6 +24,28 @@ export default async function BrandLandingPage({ params }: BrandPageProps) {
         return notFound()
     }
 
+    if (brand.html_content) {
+        const isFullPage = brand.html_content.toLowerCase().includes('<html') || 
+                          brand.html_content.toLowerCase().includes('<!doctype');
+
+        if (isFullPage) {
+            return (
+                <iframe 
+                    srcDoc={brand.html_content} 
+                    className="fixed inset-0 w-full h-full border-none z-[9999]"
+                    title={brand.name}
+                />
+            )
+        }
+
+        return (
+            <div 
+                className="min-h-screen bg-white"
+                dangerouslySetInnerHTML={{ __html: brand.html_content }}
+            />
+        )
+    }
+
     const sections = (brand.sections || []) as Section[]
 
     return (

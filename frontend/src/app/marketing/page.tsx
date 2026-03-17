@@ -85,35 +85,57 @@ export default function Marketing() {
                 </div>
             </section>
 
-            {/* Asymmetrical Services Grid */}
+            {/* Services Grid */}
             <section className="py-32 bg-black px-6">
-                <div className="max-w-[95%] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-x-12 md:gap-y-32">
+                <div className="max-w-[95%] mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 md:gap-x-12 md:gap-y-24">
                     {isLoading ? (
                         <div className="col-span-12 flex justify-center py-20 text-[#dafc69]">
                             <div className="w-12 h-12 border-4 border-current border-t-transparent rounded-full animate-spin" />
                         </div>
-                    ) : services.length > 0 ? (
-                        services.map((service, idx) => {
-                            let colClasses = "md:col-span-12 lg:col-span-7";
-                            if (idx % 3 === 1) {
-                                colClasses = "md:col-span-12 lg:col-span-5 lg:col-start-8";
-                            }
-                            return (
-                                <div key={service.id} className={`${colClasses} bg-[#f3f3f3] text-black rounded-[3rem] p-12 md:p-16 flex flex-col justify-between min-h-[500px] hover:scale-[1.01] transition-transform duration-500 overflow-hidden relative group animate-on-scroll`}>
-                                    <div className={`absolute inset-0 ${idx % 3 === 2 ? 'bg-[#dafc69] mix-blend-color-burn opacity-0 group-hover:opacity-10' : 'bg-white opacity-0 group-hover:opacity-50'} transition-opacity duration-500 pointer-events-none`}></div>
-                                    <h3 className={`text-5xl md:text-7xl font-black lowercase tracking-tight z-10 ${idx % 3 !== 1 ? 'w-3/4' : ''}`}>{service.title}</h3>
-                                    <div className="self-center my-12 z-10">
-                                        <Plus className="w-24 h-24 text-black opacity-20 group-hover:rotate-90 group-hover:opacity-100 transition-all duration-700" strokeWidth={1} />
-                                    </div>
-                                    <p className={`text-xl md:text-2xl font-medium text-gray-700 lowercase leading-relaxed z-10 ${idx % 3 !== 1 ? 'w-3/4' : ''}`}>
-                                        {service.description}
-                                    </p>
+                    ) : (services.length > 0 ? services : [
+                        { id: 'sample-1', title: 'facebook seeding', description: 'Reach thousands of potential customers with our automated and manual seeding strategies.', image_url: '/assets/august/our_services_marketi.jpg' },
+                        { id: 'sample-2', title: 'fanpage management', description: 'Professional content creation and community management for your brand pages.', image_url: '/assets/august/about_center_1.jpg' },
+                        { id: 'sample-3', title: 'viral marketing', description: 'Create content that people can\'t help but share across social media platforms.', image_url: '/assets/august/about_right.jpg' }
+                    ] as any[]).map((service, idx) => {
+                        return (
+                            <Link 
+                                key={service.id} 
+                                href={service.slug ? `/services/${service.slug}` : '#'}
+                                className="bg-white text-black p-8 md:p-10 aspect-[3/4] rounded-[2rem] border border-black/10 flex flex-col justify-between overflow-hidden relative group animate-on-scroll"
+                            >
+                                {/* Background Image Reveal on Hover */}
+                                <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-all duration-700">
+                                    <img 
+                                        src={service.image_url || "/assets/august/our_services_marketi.jpg"} 
+                                        className="w-full h-full object-cover scale-110 group-hover:scale-100 transition-transform duration-1000" 
+                                        alt={service.title} 
+                                    />
+                                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/20 transition-colors" />
                                 </div>
-                            );
-                        })
-                    ) : (
-                        <p className="col-span-12 text-center text-white/40 italic lowercase">chưa có dịch vụ nào.</p>
-                    )}
+
+                                {/* Content Container */}
+                                <div className="relative z-10 h-full flex flex-col justify-between group-hover:text-white transition-colors duration-500">
+                                    <div>
+                                        <h3 className="text-4xl md:text-5xl font-bold lowercase tracking-tighter leading-[0.9] max-w-[80%]">
+                                            {(service.title as string).split(' ').map((word, i) => (
+                                                <span key={i} className="block">{word}</span>
+                                            ))}
+                                        </h3>
+                                    </div>
+
+                                    <div className="flex justify-center items-center">
+                                        <Plus className="w-20 h-20 text-black group-hover:text-white group-hover:rotate-90 transition-all duration-500" strokeWidth={0.5} />
+                                    </div>
+
+                                    <div className="max-w-[90%]">
+                                        <p className="text-sm font-medium leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                                            {service.description}
+                                        </p>
+                                    </div>
+                                </div>
+                            </Link>
+                        );
+                    })}
                 </div>
             </section>
 

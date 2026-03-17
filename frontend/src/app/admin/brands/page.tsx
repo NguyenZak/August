@@ -21,7 +21,7 @@ export default async function BrandPage() {
                             quản trị landing page
                         </h1>
                         <p className="text-gray-400 font-bold text-xs uppercase tracking-widest">
-                            Quản lý thương hiệu và subdomain của bạn
+                            Quản lý các trang landing page và subdomain của bạn
                         </p>
                     </div>
                     <Link
@@ -29,7 +29,7 @@ export default async function BrandPage() {
                         className="flex items-center gap-2 px-8 py-4 bg-black text-white rounded-[1.5rem] font-black text-sm lowercase transition-all hover:scale-105 shadow-xl shadow-black/10 group"
                     >
                         <Plus className="w-4 h-4 text-[#dafc69]" />
-                        <span>tạo thương hiệu mới</span>
+                        <span>tạo landing page mới</span>
                     </Link>
                 </div>
 
@@ -61,7 +61,7 @@ export default async function BrandPage() {
                                         href={`/admin/brands/${brand.id}/edit`}
                                         className="flex-1 text-center py-4 px-4 bg-[#dafc69] text-black rounded-2xl text-xs font-black lowercase hover:scale-105 transition-transform shadow-lg shadow-lime-400/10"
                                     >
-                                        thiết kế page
+                                        thiết kế AI
                                     </Link>
                                     <Link
                                         href={`/admin/brands/${brand.id}`}
@@ -86,8 +86,8 @@ export default async function BrandPage() {
                             <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Globe className="w-10 h-10 text-gray-200" />
                             </div>
-                            <h3 className="text-lg font-black text-gray-900 tracking-tighter lowercase mb-2">chưa có thương hiệu nào</h3>
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Nhấn "tạo thương hiệu mới" để bắt đầu</p>
+                            <h3 className="text-lg font-black text-gray-900 tracking-tighter lowercase mb-2">chưa có landing page nào</h3>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Nhấn "tạo landing page mới" để bắt đầu</p>
                         </div>
                     )}
                 </div>
