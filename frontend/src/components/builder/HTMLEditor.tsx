@@ -79,6 +79,7 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                 // Remove the injected markers before saving back to state
                 let newHtml = event.data.html
                 newHtml = newHtml.replace(/<style id="visual-editing-style">[\s\S]*?<\/style>/, '')
+                newHtml = newHtml.replace(/<script id="silence-tailwind-warning">[\s\S]*?<\/script>/, '')
                 newHtml = newHtml.replace(/\scontenteditable="true"/g, '')
                 setHtml(newHtml)
             }
@@ -112,6 +113,25 @@ export default function HTMLEditor({ brandId, brandName, initialHtml }: HTMLEdit
                 }
             `
             doc.head.appendChild(style)
+        }
+
+        // Silence Tailwind CDN Production warning
+        const silenceScriptId = 'silence-tailwind-warning'
+        if (!doc.getElementById(silenceScriptId)) {
+            const script = doc.createElement('script')
+            script.id = silenceScriptId
+            script.innerHTML = `
+                (function() {
+                    const originalWarn = console.warn;
+                    console.warn = function(...args) {
+                        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+                            return;
+                        }
+                        originalWarn.apply(console, args);
+                    };
+                })();
+            `
+            doc.head.appendChild(script)
         }
 
         // Make elements containing text editable
