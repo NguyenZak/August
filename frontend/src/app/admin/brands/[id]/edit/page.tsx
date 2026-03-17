@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { notFound } from 'next/navigation'
-import BrandBuilder from '@/components/builder/BrandBuilder'
+import HTMLEditor from '@/components/builder/HTMLEditor'
 
 interface EditBrandPageProps {
     params: Promise<{
@@ -23,8 +23,10 @@ export default async function EditBrandPage({ params }: EditBrandPageProps) {
     }
 
     return (
-        <div className="min-h-screen bg-white">
-            <BrandBuilder brandId={brand.id} initialSections={brand.sections} />
-        </div>
+        <HTMLEditor 
+            brandId={brand.id} 
+            brandName={brand.name} 
+            initialHtml={brand.html_content} 
+        />
     )
 }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Save, Sparkles, Globe, Layout } from 'lucide-react'
+import { ArrowLeft, Save, Sparkles, Globe, Layout, Code } from 'lucide-react'
 import { slugify } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -205,8 +205,8 @@ export default function BrandSettingsClient({ brand }: BrandSettingsClientProps)
                             href={`/admin/brands/${brand.id}/edit`}
                             className="w-full flex items-center justify-center gap-3 py-6 px-4 bg-gray-50 text-black border border-gray-100 rounded-[2rem] font-black text-sm lowercase hover:bg-[#dafc69] transition-all group"
                         >
-                            <Layout size={18} className="group-hover:scale-110 transition-transform" />
-                            <span>Mở trình thiết kế AI</span>
+                            <Code size={18} className="group-hover:scale-110 transition-transform" />
+                            <span>mở trình soạn thảo HTML</span>
                         </Link>
                         <a
                             href={`/brand/${brand.subdomain}`}

@@ -61,7 +61,7 @@ export default async function BrandPage() {
                                         href={`/admin/brands/${brand.id}/edit`}
                                         className="flex-1 text-center py-4 px-4 bg-[#dafc69] text-black rounded-2xl text-xs font-black lowercase hover:scale-105 transition-transform shadow-lg shadow-lime-400/10"
                                     >
-                                        thiết kế AI
+                                        nhập mã HTML
                                     </Link>
                                     <Link
                                         href={`/admin/brands/${brand.id}`}

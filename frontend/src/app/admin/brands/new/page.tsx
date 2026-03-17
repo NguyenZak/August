@@ -160,7 +160,7 @@ export default function NewBrandPage() {
                                     placeholder="Dán mã HTML của bạn vào đây nếu bạn đã có sẵn nội dung trang..."
                                     className="w-full px-6 py-4 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-[#dafc69] outline-none font-mono text-xs placeholder:text-gray-300 transition-all resize-none"
                                 />
-                                <p className="text-[9px] text-gray-400 px-2 italic">Nếu có nội dung HTML, hệ thống sẽ ưu tiên hiển thị mã này thay vì giao diện AI mặc định.</p>
+                                <p className="text-[9px] text-gray-400 px-2 italic">Hệ thống sẽ ưu tiên hiển thị mã HTML này nếu có nội dung.</p>
                             </div>
                         </div>
 
@@ -214,7 +214,7 @@ export default function NewBrandPage() {
                                     <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                                 ) : (
                                     <>
-                                        <Sparkles size={18} />
+                                        <Save size={18} />
                                         <span>tạo landing page</span>
                                     </>
                                 )}
