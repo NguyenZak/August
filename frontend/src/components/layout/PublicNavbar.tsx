@@ -40,45 +40,47 @@ export default function PublicNavbar({ activeSection = 'dark' }: PublicNavbarPro
     ];
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-4 bg-black/80 backdrop-blur-md' : 'py-8'}`}>
-            <div className="max-w-[95%] mx-auto px-6 flex items-center justify-between">
-                <Link href="/" className="transition-opacity hover:opacity-70 duration-300">
-                    <img src="/assets/august/logo.svg" alt="August" className="h-8 w-auto mix-blend-difference" />
-                </Link>
+        <>
+            <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-4 bg-black/80 backdrop-blur-md' : 'py-8'}`}>
+                <div className="max-w-[95%] mx-auto px-6 flex items-center justify-between">
+                    <Link href="/" className="transition-opacity hover:opacity-70 duration-300">
+                        <img src="/assets/august/logo.svg" alt="August" className="h-8 w-auto mix-blend-difference" />
+                    </Link>
 
-                <div className="hidden md:flex items-center gap-10 text-xl font-bold lowercase transition-colors duration-300 mix-blend-difference text-white">
-                    {navLinks.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={`hover:opacity-70 transition-opacity ${pathname === link.href ? 'text-[#dafc69]' : ''}`}
+                    <div className="hidden md:flex items-center gap-10 text-xl font-bold lowercase transition-colors duration-300 mix-blend-difference text-white">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`hover:opacity-70 transition-opacity ${pathname === link.href ? 'text-[#dafc69]' : ''}`}
+                            >
+                                {link.name}
+                            </Link>
+                        ))}
+                        <button
+                            onClick={openContact}
+                            className="hover:opacity-70 transition-opacity"
                         >
-                            {link.name}
-                        </Link>
-                    ))}
+                            liên hệ
+                        </button>
+                    </div>
+
                     <button
                         onClick={openContact}
-                        className="hover:opacity-70 transition-opacity"
+                        className={`hidden md:block px-8 py-3 rounded-full border-2 font-black lowercase text-lg transition-all duration-300 mix-blend-difference ${buttonStyle}`}
                     >
-                        liên hệ
+                        liên hệ ngay
+                    </button>
+
+                    {/* Mobile Menu Toggle */}
+                    <button
+                        className="md:hidden p-2 text-white mix-blend-difference"
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    >
+                        {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
                     </button>
                 </div>
-
-                <button
-                    onClick={openContact}
-                    className={`hidden md:block px-8 py-3 rounded-full border-2 font-black lowercase text-lg transition-all duration-300 mix-blend-difference ${buttonStyle}`}
-                >
-                    liên hệ ngay
-                </button>
-
-                {/* Mobile Menu Toggle */}
-                <button
-                    className="md:hidden p-2 text-white mix-blend-difference"
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                >
-                    {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
-                </button>
-            </div>
+            </nav>
 
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
@@ -119,6 +121,6 @@ export default function PublicNavbar({ activeSection = 'dark' }: PublicNavbarPro
                     </div>
                 </div>
             )}
-        </nav>
+        </>
     );
 }
